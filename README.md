@@ -11,6 +11,8 @@ Persona-Gestor improves the system's usability and generalization capabilities, 
 
 ![image](./Image/Summary.png)
 Presentation page: https://zf223669.github.io/Diffmotion-v2-website/
+
 Showcases(Goodele Drive): https://drive.google.com/drive/folders/1YWQaS4BZZsYvPAKychusLJOhT--dfv2G
+
 Showcases(Baidu Cloud Disk): https://pan.baidu.com/s/1Mt6K-mVUnAcLk6Ol8NALQA?pwd=1234
 # Source Code is Coming soon!
