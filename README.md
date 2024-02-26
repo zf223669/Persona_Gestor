@@ -14,10 +14,10 @@ Each pose depicted is personalized gestures generated solely relying on raw spee
 
 
 For clarity, our contributions are summarized as follows:
-1) We pioneering introduce the fuzzy feature inference strategy that enables driving a wider range of personalized gesture synthesis from speech audio alone, removing the need for style labels or extra inputs.
+1) **We pioneering introduce the fuzzy feature inference strategy that enables driving a wider range of personalized gesture synthesis from speech audio alone, removing the need for style labels or extra inputs.**
 This fuzzy feature extractor improves the usability and the generalization capabilities of the system. To the best of our knowledge, it is the first approach that uses fuzzy features to generate co-speech personalized gestures.
-2) We combined AdaLN transformer architecture within the diffusion model to enhance the Modeling of the gesture-speech interplay. We demonstrate that this architecture can generate gestures that achieve an optimal balance of natural and speech synchronization.
-3) Extensive subjective and objective evaluations reveal our model superior outperform to the current state-of-the-art approaches. These results show the remarkable capability of our method in generating credible, speechappropriateness, and personalized gestures.
+2) **We combined AdaLN transformer architecture within the diffusion model to enhance the Modeling of the gesture-speech interplay.** We demonstrate that this architecture can generate gestures that achieve an optimal balance of natural and speech synchronization.
+3) **Extensive subjective and objective evaluations reveal our model superior outperform to the current state-of-the-art approaches.** These results show the remarkable capability of our method in generating credible, speechappropriateness, and personalized gestures.
 
 Presentation page: https://zf223669.github.io/Diffmotion-v2-website/
 
