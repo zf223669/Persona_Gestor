@@ -30,7 +30,7 @@ Showcases(Baidu Cloud Disk): https://pan.baidu.com/s/1Mt6K-mVUnAcLk6Ol8NALQA?pwd
 - Python 3.11
 - CUDA 12
 - PyTorch 2.2.2
-- Pytorch-lightning 2.2.3
+- Pytorch-lightning 2.2.3 <br>
 Note: We recommend using Anaconda to manage your Python environment.
 # Installations
 We provide a requirements.txt for installation.
