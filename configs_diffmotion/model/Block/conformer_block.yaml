@@ -1,0 +1,17 @@
+_target_: src.diffmotion.components.conformer_block.ConformerBlock
+hidden_size: ${model.encoder_dim}
+mlp_ratio: 4.0
+feed_forward_expansion_factor: 4
+feed_forward_dropout_p: 0.1
+num_attention_heads: 8    # 8 16
+attention_dropout_p: 0.1
+conv_kernel_size: 3
+conv_expansion_factor: 2
+conv_dropout_p: 0.1
+use_DropKey: False
+mask_ratio: 0.1
+total_layer: ${model.epsilon_theta_model.block_depth}
+use_time_mixed: False
+
+
+

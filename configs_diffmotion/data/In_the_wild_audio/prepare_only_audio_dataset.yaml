@@ -1,0 +1,29 @@
+
+# in terminal,if you run the code from terminal, please use the following code to specify the data_dir and processed_dir
+data_dir: ./data/audio_in_the_wild/TED_Noisy
+processed_dir: ./data/audio_in_the_wild/TED_Noisy_processed
+
+# in IDE, if you run the code from IDE, please use the following code to specify the data_dir and processed_dir
+#data_dir: ../../../../data/BEAT/Sources
+#processed_dir: ../../../../data/BEAT/processed_20s_con_remover
+
+# Attention: Do not modify the following parameters unless you know what you are doing.
+train_window_secs: 20
+test_window_secs: 20
+window_overlap: 0.5
+fps: 20     # 20 / 24
+n_mels : 20
+fullbody: True
+
+# If you want to inference from other audios, please modify the holdout list with the names of the audio files.
+holdout: ["StefanSagmeister_2008_noise","StefanSagmeister_2008","StefanaBroadbent_2009G_noise","StefanaBroadbent_2009G","ShereenElFeki_2009G_noise","ShereenElFeki_2009G","ShaoLanHsueh_2013_noise","ShaoLanHsueh_2013","SakiMafundikwa_2013_noise","SakiMafundikwa_2013","JonathanFoley_2010X_noise","JonathanFoley_2010X","JohnSearle_2013_noise","JohnSearle_2013","JinhaLee_2013_noise","JinhaLee_2013","CharmianGooch_2013G_noise","CharmianGooch_2013G","CarmenAgraDeedy_2005_noise","CarmenAgraDeedy_2005"]
+
+position_smoothing: 0    # default 5
+rotation_smoothing: 0    # default 10
+constant_remover_eps: 1e-6
+is_standardize: True
+map_to_exponential: True
+extract_MFCC: False
+# for extract wavform
+audio_sample_rate: 16000  # for Wav_LM
+

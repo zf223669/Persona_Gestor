@@ -1,0 +1,112 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: diffmotion_datamodule.yaml
+  - override /model: diffmotion_module.yaml
+  - override /logger: null #wandb.yaml
+  - override /callbacks: callbacks_trinity_diffusion.yaml
+#  - override /trainer: ddp.yaml
+  - override /trainer: Trinity_gpu.yaml
+  - override /paths: trinity_diffmotion_path.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+task_name: "Tri_W_based_train"
+use_auto_scale_batch_size: False
+#num_sanity_val_steps: 0
+#reload_dataloaders_every_epoch: False
+tags: ["Tri_W_based_train"]
+
+#ckpt_path: ${paths.log_dir}/Tri_W_conf_train/multi/230807_142104_causalMask/0_experiment=Trinity_WavLM_based_train.yaml/checkpoints/epoch_epoch=234.ckpt
+ckpt_path: null
+seed: null
+train: True
+test: True
+
+logger:
+  wandb: # we use wandb for logging, please find instructions to set it up from https://docs.wandb.ai/quickstart, if you want to use wandb or other loggers, please set parameter: - override /logger:
+    id:  ${task_name} # pass correct id to resume experiment! ${task_name}
+#    tags: ${tags}
+    name: ${task_name}
+    project: "Trinity"
+    group: "Tri_W_based_train"
+
+trainer:
+  min_epochs: 10
+  max_epochs: 400
+#  max_steps: 10
+  devices: [0]
+  gradient_clip_val: 0.5
+  check_val_every_n_epoch: 5
+  log_every_n_steps: 20
+#  accumulate_grad_batches: 8
+  fast_dev_run: False
+#  profiler: "simple"  # "advanced" "simple"
+#  precision: 16  # worst
+
+profiler:
+  _target_: pytorch_lightning.profilers.SimpleProfiler
+  extended: True
+#  dirpath: ${paths.output_dir}/
+#  filename: 'profiler'
+
+model:
+  param_for_name: ""
+  timesteps: 1000 #2000
+  beta_schedule: 'linear'  # cosine / linear
+  linear_start: 1e-4
+  linear_end: 8e-2    # 5e-2
+
+  gesture_features: 75 # 69 65
+  encoder_dim: 1280   # 1024
+  learning_rate: 2.0e-4
+  sampler: "DDPM" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
+  ddim_steps: 200 # 10 ~ 100 for timesteps=500
+  num_sequences: 1  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
+  eps_theta_mod:
+    _target_: src.diffmotion.diffmotion_epsilon_net.diffmotion_epsilon_theta.TrinityEpsilonTheta
+    atten_sel: 'conformer'          # conformer 'informer', 'full_transformer'
+
+    mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
+    dman_mask: 'no_mask'
+    dman_max_len: 400               # max_seq_len 120, 100 200 300 400
+    dman_position: False
+    inf_pos: False
+    informer_factor: 5
+    upper_offset: 10
+    lower_offset: -10
+#    re_weight_m: 1
+    block_depth: 12                 # 4 is default 6  12 layers with 8 heads
+    num_att_heads: 16               # 8  16 32  64
+    motion_encoder:
+      encoder_type: 'single_conv' # 'single_conv' 'separable_conv'
+      encoder_kernel_size: 3
+    wavLMEncoder:
+      checkpoint_path: ${paths.root_dir}/src/utils/wavlm/pretrain-models/WavLM-Base+.pt
+      # checkpoint_path: '/home/zf223669/Mount/Diffmotion-v3-sync/src/utils/wavlm/pretrain-models/WavLM-Large.pt'
+    cond_dropout_rate: 0.1
+    conv_depthwise: False
+    use_DropKey: False
+  scheduler_config: # 10000 warmup steps
+    target: src.utils.LDM.lr_scheduler.LambdaLinearScheduler
+    params:
+      warm_up_steps: [ 1000 ]
+      cycle_lengths: [ 10000000000000 ] # incredibly large number to prevent corner cases
+      f_start: [ 8.e-5 ]
+      f_max: [ 1. ]
+      f_min: [ 1. ]
+paths:
+  data_dir: ${paths.root_dir}/data/Trinity/processed_20s_20fps_full_spine
+data:
+  data_root: ${paths.data_dir}/feat_20fps_20s_WithExp_waveform_WithStd
+  pin_memory: True
+  batch_size: 36    # 58: 6s   28: 10s 16:15S  8:20s
+  num_workers: 30
+  is_smoothing: False
+#  holdout: ['Recording_008', 'Recording_015']
+  test_style: 'Recording_015' #'test_file_Recording_008_'
+
+

@@ -1,0 +1,10 @@
+defaults:
+  - default.yaml
+
+accelerator: gpu
+devices: 1
+max_epochs: 200 # 100, 200
+# profiler: 'simple'
+check_val_every_n_epoch: 5
+#log_every_n_steps: 1
+#precision: 16

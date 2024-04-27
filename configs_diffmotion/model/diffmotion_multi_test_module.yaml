@@ -1,0 +1,109 @@
+_target_: src.diffmotion.diffmotion_module.diffmotion_multi_test_module.TrinityDiffmotionModule
+
+given_betas:
+beta_schedule: 'linear'  # cosine / linear
+timesteps: 1000 #2000
+linear_start: 1e-4
+linear_end: 5e-2
+cosine_s: 8e-3
+v_posterior: 0.             # weight for choosing posterior variance as sigma = (1-v) * beta_tilde + v * beta
+parameterization: "eps"
+#hidden_size: 1024 # 768 # no need
+gesture_features: 69 # 69 65
+dropout: 0.3
+encoder_dim: 1024
+use_wavlm: True
+param_for_name: "_TRI_"
+matmul_precision: 'high'
+log_sync_dist: False
+eps_theta_mod:
+  _target_: src.diffmotion.diffmotion_epsilon_net.diffmotion_epsilon_theta.TrinityEpsilonTheta
+  encoder_dim: ${model.encoder_dim}
+  target_dim: ${model.gesture_features}
+  time_emb_dim: ${model.eps_theta_mod.encoder_dim}
+  atten_sel: 'informer'     # conformer 'informer', 'full_transformer'
+  mask_sel: 'dman'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
+  dman_mask: 'no_mask'
+  dman_position: False
+  dman_max_len: 400          # max_seq_len 100 200
+  inf_pos: False
+  informer_factor: 5
+#  re_weight_m: 1              # 1 = dman
+  separate_wavlm: False     # True for using  all different layer result of wavlm encoder, False for one layer with walm_layer
+  wavlm_layer: 12           # 0 ~ 12
+  # upper_offset & lower_offset for diagonal_matrix
+  causal_mask_diagonal: 0
+  upper_offset: 5
+  lower_offset: -5
+  position_embedding_type: 'Transformer_FX' # 'TISA'( translation-invariant self-attention)
+  condition_strategy: 'adaptive_layer_norm' # cross_attention and extra_input_tokens
+  block_depth: 6  # 4 is default 6
+  motion_encoder:
+    _target_: src.diffmotion.components.motion_ae.PoseEncoderConv
+    gesture_features: ${model.gesture_features}
+    encoder_dim: ${model.eps_theta_mod.encoder_dim}
+    encoder_kernel_size: 3
+    batch_norm: False
+    simple_encoder: True  # just one conv1d layer
+    encoder_type: 'single_conv' # 'single_conv' 'separable_conv'
+  wavLMEncoder:
+    _target_: src.diffmotion.components.wav_lm_encoder.WavLMEncoder
+    # checkpoint_path: '../../utils/wavlm/pretrain-models/WavLM-Base+.pt'
+    checkpoint_path: ${paths.root_dir}/src/utils/wavlm/pretrain-models/WavLM-Base+.pt
+    # checkpoint_path: '/home/zf223669/Mount/Diffmotion-v3-sync/src/utils/wavlm/pretrain-models/WavLM-Large.pt'
+  motion_decoder:
+    _target_: src.diffmotion.components.motion_ae.PoseDecoderConv
+    pose_dim: ${model.gesture_features}
+    latent_dim: ${model.eps_theta_mod.encoder_dim}
+    decoder_type: ${model.eps_theta_mod.motion_encoder.encoder_type}
+    use_convtranspose: False
+  # conformer parameters
+  num_att_heads: 64  # 8  16 32  64
+  attention_dropout_p: 0.1
+  conv_kernel_size: 3
+  feed_forward_expansion_factor: 4
+  feed_forward_dropout_p: 0.1
+  mlp_ratio: 4.0
+  cond_dropout_rate: 0.4
+  style_encode: True
+  use_DropKey: False
+
+loss_type: 'l2'
+# learning_rate: 0.00025
+learning_rate: 1.0e-4
+learn_logvar: False
+logvar_init: 0.
+l_simple_weight: 1.
+original_elbo_weight: 0.
+
+scheduler_config: # 10000 warmup steps
+  target: src.utils.LDM.lr_scheduler.LambdaLinearScheduler
+  params:
+    warm_up_steps: [ 10000 ]
+    cycle_lengths: [ 10000000000000 ] # incredibly large number to prevent corner cases
+    f_start: [ 5.e-5 ]
+    f_max: [ 1. ]
+    f_min: [ 1. ]
+use_ema: False
+init_by_mean_pose: True
+num_parallel_samples: 1
+image_size: 1  # 1
+channels: 45
+log_every_t: 300
+cond_stage_trainable: False
+clip_denoised: False
+quantile: 0.5
+bvh_save_path: ${paths.output_dir}/
+bvh_save_file: ${now:%y%m%d_%H%M}
+batch_smooth: False
+concate_length: 5
+sampler: "DDPM" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
+ddim_steps: 200 # 10 ~ 100 for timesteps=500
+solver_steps: 5
+solver_order: 1
+solver_skip_type: 'time_uniform'    # 'time_uniform' or 'logSNR' or 'time_quadratic'
+solver_method: 'singlestep'          # 'singlestep' or 'multistep' or 'singlestep_fixed' or 'adaptive'
+num_sequences: 1
+
+
+

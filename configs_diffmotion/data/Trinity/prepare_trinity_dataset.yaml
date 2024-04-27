@@ -1,0 +1,27 @@
+# in terminal,if you run the code from terminal, please use the following code to specify the data_dir and processed_dir
+#data_dir: ./data/Trinity/Sources
+#processed_dir: ./data/Trinity/processed_20s
+
+# in IDE, if you run the code from IDE, please use the following code to specify the data_dir and processed_dir
+data_dir: ../../../../data/Trinity/Sources
+processed_dir: ../../../../data/Trinity/processed_20s
+
+# Attention: Do not modify the following parameters unless you know what you are doing.
+
+train_window_secs: 20
+test_window_secs: 20
+window_overlap: 0.5
+fps: 20     # 20
+n_mels : 20
+fullbody: True
+holdout: ['Recording_008', 'Recording_015']
+# for smoothing the root position and rotation
+position_smoothing: 0    # default 5
+rotation_smoothing: 0    # default 10
+constant_remover_eps: 1e-6
+is_standardize: True
+map_to_exponential: True
+extract_MFCC: False
+# for extract wavform
+audio_sample_rate: 16000  # for Wav_LM
+

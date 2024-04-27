@@ -1,0 +1,23 @@
+_target_: src.diffmotion.diffmotion_data.Trinity_datamodule.diffmotion_multi_test_datamodule.GestureDataModule
+data_root: ${paths.data_dir}/feat_20fps_10s_WithExp_waveform_WithStd
+framerate: 20
+seqlen: 5
+n_lookahead: 10
+dropout: 0.3
+batch_size: 10
+audio_sample_rate: 16000
+pin_memory: True
+# input_size: 927 # upper_body
+#input_size: 1027 # full_body
+# input_size: #2405 # full_body , n_mels = 80
+gesture_features: ${model.gesture_features}
+num_workers: 16
+is_full_body: True
+# For smooth post-processing
+is_smoothing: True
+window_length: 21 # 51 to0 large
+polyorder: 4  # 2 too smooth, 4
+save_np: False
+#test_style: 'test_file_Recording_008_'
+
+test_style: ['Recording_008', 'Recording_015']

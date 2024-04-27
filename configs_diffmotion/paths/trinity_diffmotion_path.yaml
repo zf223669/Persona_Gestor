@@ -1,0 +1,5 @@
+defaults:
+  - default.yaml
+
+# path to data directory
+data_dir: ${paths.root_dir}/data/Trinity/processed_20s_30fps
