@@ -31,14 +31,16 @@ Showcases(Baidu Cloud Disk): https://pan.baidu.com/s/1Mt6K-mVUnAcLk6Ol8NALQA?pwd
 - CUDA 12
 - PyTorch 2.2.2
 - Pytorch-lightning 2.2.3 <br>
-Note: We recommend using Anaconda to manage your Python environment.
+Note: 
+- 1.We recommend using Anaconda to manage your Python environment. 
+- 2.We recommend using GPU (such as A100, V100) that more memory is available for faster training.  For inferecing, we recommend using RTX 3090 or higher.
 # Installations
 We provide a requirements.txt for installation.
 code:
 ```
 git clone https://github.com/zf223669/Persona_Gestor.git
 cd Persona_Gestor    # enter the project directory
-conda create -n PG python=3.11
+conda create -n PG python==3.11
 conda activate PG
 pip install -r requirements.txt
 ```
@@ -159,7 +161,7 @@ python prepare_BEAT_datasets.py
 We provide the trained model for inference. You can download the model from the following link: <br>
 - Trinity: https://pan.baidu.com/s/1O-1qa9PciDDaEWVUxIMXcQ?pwd=1234 extraction code: 1234
 - ZEGGS:   https://pan.baidu.com/s/1hNrifBzlal91EjkVrExh3g?pwd=1234 extraction code: 1234
-- BEAT:
+- BEAT:    https://pan.baidu.com/s/1qTxHEpwXRsZlyOm9u1UdSw?pwd=1234 extraction code: 1234
 
 Then, place the downloaded model in the "src/models/Trinity/" folder, "src/models/ZEGGS/" folder, and "src/models/BEAT/" folder, respectively.
 ## 3.2 Set the config file
