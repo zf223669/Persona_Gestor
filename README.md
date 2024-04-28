@@ -215,4 +215,31 @@ run:
 python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=In_the_wild_Inference_WavLM_[based/large].yaml
 ```
 
+# References
+```
+@ARTICLE{zhang2024PersonalizedGesture,
+  author={Zhang, Fan and Wang, Zhaohan and Lyu, Xin and Zhao, Siyuan and Li, Mengjian and Geng, Weidong and Ji, Naye and Du, Hui and Gao, Fuxing and Wu, Hao and Li, Shunman},
+  journal={IEEE Transactions on Visualization and Computer Graphics}, 
+  title={Speech-driven Personalized Gesture Synthetics: Harnessing Automatic Fuzzy Feature Inference}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={1-16},
+  keywords={Feature extraction;Transformers;Art;Synchronization;Semantics;Fuzzy logic;Adaptation models;Speech-driven;Gesture synthesis;Fuzzy inference;AdaLN;Diffusion;Transformer;DiTs},
+  doi={10.1109/TVCG.2024.3393236}}
+  
+  @Article{Zhang2024DiTGesture,
+    AUTHOR = {Zhang, Fan and Wang, Zhaohan and Lyu, Xin and Ji, Naye and Zhao, Siyuan and Gao, Fuxing},
+    TITLE = {DiT-Gesture: A Speech-Only Approach to Stylized Gesture Generation},
+    JOURNAL = {Electronics},
+    VOLUME = {13},
+    YEAR = {2024},
+    NUMBER = {9},
+    ARTICLE-NUMBER = {1702},
+    URL = {https://www.mdpi.com/2079-9292/13/9/1702},
+    ISSN = {2079-9292},
+    DOI = {10.3390/electronics13091702}
+}
+```
+
 
