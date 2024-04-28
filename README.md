@@ -1,4 +1,4 @@
-# Persona_Gestor (Source Code is coming soon!)
+# Persona_Gestor
 ## Speech-driven Personalized Gesture Synthetics: Harnessing Automatic Fuzzy Feature Inference
 # Abstract
 Speech-driven gesture generation is an emerging field within virtual human creation. However, a significant challenge lies in accurately determining and processing the multitude of input features (such as acoustic, semantic, emotional, personality, and even subtle unknown features). Traditional approaches, reliant on various explicit feature inputs and complex multimodal processing, constrain the expressiveness of resulting gestures and limit their applicability.
