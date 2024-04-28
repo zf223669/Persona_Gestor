@@ -28,7 +28,8 @@ test: True
 logger:
   wandb:
     id:  ${task_name} # we use wandb for logging, please find instructions to set it up from https://docs.wandb.ai/quickstart, if you want to use wandb or other loggers, please set parameter: - override /logger:
-#    tags: ${tags}
+    # when you have login in the wandb, please copy the API key to the parameters in the train_diffmotion.py line 80.
+  #    tags: ${tags}
     name: ${task_name}
     project: "BEAT"
     group: "BEAT_W_based_train"

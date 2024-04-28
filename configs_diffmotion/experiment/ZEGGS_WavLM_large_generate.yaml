@@ -28,6 +28,8 @@ test: True
 #
 logger:
   wandb:
+    # when you have login in the wandb, please copy the API key to the parameters in the train_diffmotion.py line 80.
+
     id:  ${task_name} # pass correct id to resume experiment! ${task_name}
 #    tags: ${tags}
     name: ${task_name}
