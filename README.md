@@ -63,7 +63,6 @@ We use three datasets for training and evaluation: Trinity, ZEGGS, and BEAT. You
 - Trinity: https://trinityspeechgesture.scss.tcd.ie/
 - ZEGGS: https://github.com/ubisoft/ubisoft-laforge-ZeroEGGS
 - BEAT: https://drive.google.com/file/d/1Akf0WgAwuH2fvlWbvNpif4XRqXlpznh9/view
-
 When downloaded, extract the files and place them in the data folder. Then make the folders and copy the audio files in to the audio folder, and the bvh files in to the bvh folder.
 like this:
 
@@ -95,6 +94,7 @@ Trinity: https://pan.baidu.com/s/1EFxbOsxs4bylBfl9AyvhwA?pwd=1234 Extraction cod
 ZEGGS：https://pan.baidu.com/s/1IVTY6K6JaG_yK-6-hvvOOg?pwd=1234  Extraction code: 1234 <br>
 BEAT:  https://pan.baidu.com/s/1a9a74MMkhYDWZqDzSoNiBA?pwd=1234  Extraction code: 1234 <br>
 and place the extracted files in the corresponding folders.
+### Note：Also, all processed data and the pre-train model are provided in google drive : https://drive.google.com/drive/folders/1qgdBb2LgpW4hhmtOb3I9o_qysoQ4qVCP?usp=drive_link
 
 ## 2. Preprocessing
 We use the pre-processing method proposed by https://github.com/simonalexanderson/StyleGestures, but change the audio feature extractor to raw audio information. (Each dataset is trained separately and you can train it individually according to your needs.)
@@ -164,6 +164,7 @@ We provide the trained model for inference. You can download the model from the 
 - Trinity: https://pan.baidu.com/s/1O-1qa9PciDDaEWVUxIMXcQ?pwd=1234 extraction code: 1234
 - ZEGGS:   https://pan.baidu.com/s/1hNrifBzlal91EjkVrExh3g?pwd=1234 extraction code: 1234
 - BEAT:    https://pan.baidu.com/s/1qTxHEpwXRsZlyOm9u1UdSw?pwd=1234 extraction code: 1234
+### Note：Also, all processed data and the pre-train model are provided in google drive : https://drive.google.com/drive/folders/1qgdBb2LgpW4hhmtOb3I9o_qysoQ4qVCP?usp=drive_link
 
 Then, place the downloaded model in the "src/models/Trinity/" folder, "src/models/ZEGGS/" folder, and "src/models/BEAT/" folder, respectively.
 ## 3.2 Set the config file
