@@ -170,9 +170,9 @@ Then, place the downloaded model in the "src/models/Trinity/" folder, "src/model
 ## 3.2 Set the config file
 We provide the config files for each dataset. You can set the parameters according to your needs. All the config files are in the /configs_diffmotion/experiment <br>
 xxx_WavLM_based.yaml files are for WavLM_Base+ model  and xxx_WavLM_large.yaml files are for WavLM_Large model.<br>
-- Trinity: Trinity_Inference_WavLM_based.yaml  or  Trinity_Inference_WavLM_large.yaml 
-- ZEGGS: ZEGGS_Inference_WavLM_based.yaml  or  ZEGGS_Inference_WavLM_large.yaml 
-- BEAT:  BEAT_Inference_WavLM_large.yaml
+- Trinity: Trinity_WavLM_based_Generate.yaml  or  Trinity_WavLM_large_generate.yaml 
+- ZEGGS: ZEGGS_WavLM_based_Generate.yaml  or  ZEGGS_WavLM_large_generate.yaml 
+- BEAT:  BEAT_WavLM_large_generate.yaml
  
 Open the parameter file and set the parameters according to your needs, as follows: <br>
 ```
@@ -187,7 +187,7 @@ data:
 We provide the inference code for each dataset. You can run the inference code according to your needs.
 ```
 # enter the root directory of the project
-python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=Trinity_Inference_WavLM_[based/large].yaml
+python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=Trinity_WavLM_[based/large]_Generate.yaml
 ```
 The inference results will be saved in the "logs/log_xxx/xxx/multi\DATA_Time" folder. (DATA_Time is the date and time when the inference is started.)
 
