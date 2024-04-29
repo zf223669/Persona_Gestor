@@ -1,7 +1,6 @@
 # Persona_Gestor
 ## Speech-driven Personalized Gesture Synthetics: Harnessing Automatic Fuzzy Feature Inference <br>(Accpected by IEEE Transactions on Visualization and Computer Graphics (TVCG))
-# Paper early access link:
-https://ieeexplore.ieee.org/document/10508094
+
 # Abstract
 Speech-driven gesture generation is an emerging field within virtual human creation. However, a significant challenge lies in accurately determining and processing the multitude of input features (such as acoustic, semantic, emotional, personality, and even subtle unknown features). Traditional approaches, reliant on various explicit feature inputs and complex multimodal processing, constrain the expressiveness of resulting gestures and limit their applicability.
 
@@ -21,11 +20,12 @@ This fuzzy feature extractor improves the usability and the generalization capab
 2) **We combined AdaLN transformer architecture within the diffusion model to enhance the Modeling of the gesture-speech interplay.** We demonstrate that this architecture can generate gestures that achieve an optimal balance of natural and speech synchronization.
 3) **Extensive subjective and objective evaluations reveal our model superior outperform to the current state-of-the-art approaches.** These results show the remarkable capability of our method in generating credible, speech-appropriateness, and personalized gestures.
 
-Presentation page: https://zf223669.github.io/Diffmotion-v2-website/
+- Paper early access link: https://ieeexplore.ieee.org/document/10508094
+- Presentation page: https://zf223669.github.io/Diffmotion-v2-website/
 
-Showcases(Goodele Drive): https://drive.google.com/drive/folders/1YWQaS4BZZsYvPAKychusLJOhT--dfv2G
+- Showcases(Goodele Drive): https://drive.google.com/drive/folders/1YWQaS4BZZsYvPAKychusLJOhT--dfv2G
 
-Showcases(Baidu Cloud Disk): https://pan.baidu.com/s/1Mt6K-mVUnAcLk6Ol8NALQA?pwd=1234
+- Showcases(Baidu Cloud Disk): https://pan.baidu.com/s/1Mt6K-mVUnAcLk6Ol8NALQA?pwd=1234
 
 # Environment
 - Ubuntu 18.04
