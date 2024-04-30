@@ -215,7 +215,7 @@ Copy the output_scaler.sav and data_pipe_20fps.save files from BEAT processed da
 
 run:
 ```
-python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=In_the_wild_Inference_WavLM_[based/large].yaml
+python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=In_the_wild_audio_WavLM_large_generate.yaml
 ```
 
 # References
