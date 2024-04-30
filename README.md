@@ -203,17 +203,18 @@ python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=xxx_T
 
 # 5. Inference by using in-the-wild speech audio
 We provide in-the-wild speech audios from TED Video or you can prepare by yourself (need mono channel). <br>
-Note:We recommand you to use the BEAT pre-trained model for inference. <br>
+Note:We recommend you to use the BEAT pre-trained model for inference. <br>
 All the audio files are in the "data/TED/audio" folder. <br>
-Set the data_dir and processed_dir in the config file to specify the audio directory, like in Step 2. <br>
-Copy the input_scaler.sav file from BEAT processed data folder to the "src/models/BEAT/" folder. <br>
-run:
+1. Set the data_dir and processed_dir in the config file to specify the audio directory, like in Step 2. <br>
+
+2. Copy the input_scaler.sav file from BEAT processed data folder to the "data/TED/audio/" folder. <br>
+3. run:
 ```
 python src/data/BEAT_Only_Audio/prepare_BEAT_datasets.py
 ```
-Copy the output_scaler.sav and data_pipe_20fps.save files from BEAT processed data folder to the processed data folder. <br>
+4. Then, copy the output_scaler.sav and data_pipe_20fps.save files from BEAT processed data folder to the processed data folder. <br>
 
-run:
+5. run for generating the gestures:
 ```
 python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=In_the_wild_audio_WavLM_large_generate.yaml
 ```
@@ -242,6 +243,18 @@ python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=In_th
     URL = {https://www.mdpi.com/2079-9292/13/9/1702},
     ISSN = {2079-9292},
     DOI = {10.3390/electronics13091702}
+}
+```
+
+Our previous work (The Diffusion-based and LSTM models for gesture generation) and project are listed: https://github.com/zf223669/DiffmotionGG-beta
+```
+@inproceedings{zhang2023diffmotion,
+  title={DiffMotion: Speech-Driven Gesture Synthesis Using Denoising Diffusion Model},
+  author={Zhang, Fan and Ji, Naye and Gao, Fuxing and Li, Yongping},
+  booktitle={MultiMedia Modeling: 29th International Conference, MMM 2023, Bergen, Norway, January 9--12, 2023, Proceedings, Part I},
+  pages={231--242},
+  year={2023},
+  organization={Springer}
 }
 ```
 
