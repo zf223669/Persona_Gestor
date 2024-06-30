@@ -232,18 +232,7 @@ python src/diffmotion/diffmotion_trainer/train_diffmotion.py -m experiment=In_th
   keywords={Feature extraction;Transformers;Art;Synchronization;Semantics;Fuzzy logic;Adaptation models;Speech-driven;Gesture synthesis;Fuzzy inference;AdaLN;Diffusion;Transformer;DiTs},
   doi={10.1109/TVCG.2024.3393236}}
   
-  @Article{Zhang2024DiTGesture,
-    AUTHOR = {Zhang, Fan and Wang, Zhaohan and Lyu, Xin and Ji, Naye and Zhao, Siyuan and Gao, Fuxing},
-    TITLE = {DiT-Gesture: A Speech-Only Approach to Stylized Gesture Generation},
-    JOURNAL = {Electronics},
-    VOLUME = {13},
-    YEAR = {2024},
-    NUMBER = {9},
-    ARTICLE-NUMBER = {1702},
-    URL = {https://www.mdpi.com/2079-9292/13/9/1702},
-    ISSN = {2079-9292},
-    DOI = {10.3390/electronics13091702}
-}
+
 ```
 
 Our previous work (The Diffusion-based and LSTM models for gesture generation) and project are listed: https://github.com/zf223669/DiffmotionGG-beta
@@ -255,6 +244,19 @@ Our previous work (The Diffusion-based and LSTM models for gesture generation) a
   pages={231--242},
   year={2023},
   organization={Springer}
+}
+
+  @Article{Zhang2024DiTGesture,
+    AUTHOR = {Zhang, Fan and Wang, Zhaohan and Lyu, Xin and Ji, Naye and Zhao, Siyuan and Gao, Fuxing},
+    TITLE = {DiT-Gesture: A Speech-Only Approach to Stylized Gesture Generation},
+    JOURNAL = {Electronics},
+    VOLUME = {13},
+    YEAR = {2024},
+    NUMBER = {9},
+    ARTICLE-NUMBER = {1702},
+    URL = {https://www.mdpi.com/2079-9292/13/9/1702},
+    ISSN = {2079-9292},
+    DOI = {10.3390/electronics13091702}
 }
 ```
 
