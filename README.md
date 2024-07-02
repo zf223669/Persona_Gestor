@@ -161,10 +161,10 @@ python prepare_BEAT_datasets.py
 # 3. Inference
 ## 3.1 Download the pre-trained model
 We provide the trained model for inference. You can download the model from the following link: <br>
-- Trinity: https://pan.baidu.com/s/1O-11qa9PciDDaEWVUxIMXcQ?pwd=1234 extraction code: 1234
-- ZEGGS:   https://pan.baidu.com/s/11hNrifBzlal91EjkVrExh3g?pwd=1234 extraction code: 1234
-- BEAT:    https://pan.baidu.com/s/11qTxHEpwXRsZlyOm9u1UdSw?pwd=1234 extraction code: 1234
-### Note：Also, all processed data and the pre-train model are provided in google drive : https://drive.google.com/drive/folders/11qgdBb2LgpW4hhmtOb3I9o_qysoQ4qVCP?usp=drive_link
+- Trinity: https://pan.baidu.com/s/1O-1qa9PciDDaEWVUxIMXcQ?pwd=1234 extraction code: 1234
+- ZEGGS:   https://pan.baidu.com/s/1hNrifBzlal91EjkVrExh3g?pwd=1234 extraction code: 1234
+- BEAT:    https://pan.baidu.com/s/1qTxHEpwXRsZlyOm9u1UdSw?pwd=1234 extraction code: 1234
+### Note：Also, all processed data and the pre-train model are provided in google drive : https://drive.google.com/drive/folders/1qgdBb2LgpW4hhmtOb3I9o_qysoQ4qVCP?usp=drive_link
 
 Then, place the downloaded model in the "src/models/Trinity/" folder, "src/models/ZEGGS/" folder, and "src/models/BEAT/" folder, respectively.
 ## 3.2 Set the config file
