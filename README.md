@@ -26,7 +26,7 @@ This fuzzy feature extractor improves the usability and the generalization capab
 - Showcases(Goodele Drive): https://drive.google.com/drive/folders/1YWQaS4BZZsYvPAKychusLJOhT--dfv2G
 
 - Showcases(Baidu Cloud Disk): https://pan.baidu.com/s/1Mt6K-mVUnAcLk6Ol8NALQA?pwd=1234
-- ****** Our new work(DiM-Gesture: Co-Speech Gesture Generation with Adaptive Layer Normalization Mamba-2 framework): https://arxiv.org/abs/2408.00370
+- **Our new work(DiM-Gesture: Co-Speech Gesture Generation with Adaptive Layer Normalization Mamba-2 framework)**: https://arxiv.org/abs/2408.00370
 
 # Environment
 - Ubuntu 18.04
