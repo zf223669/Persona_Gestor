@@ -77,7 +77,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     if cfg.get("logger") is not None:
         if 'wandb' in cfg.get("logger"):
             # wandb.init(settings=wandb.Settings(_service_wait=300))
-             wandb.login(key='')    # if you want to use wandb cloud, you need to login and copy the API key to this parameter.
+             wandb.login(key='4ed0ca0cb4b019d34e2d593ea78ba7c74946aa53')    # if you want to use wandb cloud, you need to login and copy the API key to this parameter.
 
 
     logger: List[Logger] = utils.instantiate_loggers(cfg.get("logger"))
@@ -127,7 +127,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             log.warning("Best ckpt not found! Using current weights for testing...")
             ckpt_path = cfg.get("ckpt_path")
             # ckpt_path = None
-        trainer.test(model=model, datamodule=datamodule, ckpt_path=ckpt_path)
+        trainer.test(model=model, datamodule=datamodule, ckpt_path=ckpt_path,weights_only=False)
         log.info(f"Best ckpt path: {ckpt_path}")
 
     test_metrics = trainer.callback_metrics

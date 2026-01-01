@@ -304,7 +304,7 @@ class TrinityDiffmotionModule(LightningModule):
         loss_simple = loss.mean() * self.l_simple_weight
 
         loss_vlb = (self.lvlb_weights[timestep] * loss).mean()
-        loss_dict.update({f'{log_prefix}/loss_vlb': loss_vlb})
+        # loss_dict.update({f'{log_prefix}/loss_vlb': loss_vlb})
 
         loss = loss_simple + self.original_elbo_weight * loss_vlb
 

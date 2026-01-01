@@ -38,6 +38,7 @@ eps_theta_mod:
   position_embedding_type: 'Transformer_FX' # 'TISA'( translation-invariant self-attention)
   condition_strategy: 'adaptive_layer_norm' # cross_attention and extra_input_tokens
   block_depth: 6  # 4 is default 6
+  patch_size: 4
   motion_encoder:
     _target_: src.diffmotion.components.motion_ae.PoseEncoderConv
     gesture_features: ${model.gesture_features}
@@ -46,6 +47,9 @@ eps_theta_mod:
     batch_norm: False
     simple_encoder: True  # just one conv1d layer
     encoder_type: 'single_conv' # 'single_conv' 'separable_conv'
+    pca_dim: 256
+    patch_size: ${model.eps_theta_mod.patch_size}
+
   wavLMEncoder:
     _target_: src.diffmotion.components.wav_lm_encoder.WavLMEncoder
     # checkpoint_path: '../../utils/wavlm/pretrain-models/WavLM-Base+.pt'
@@ -57,6 +61,7 @@ eps_theta_mod:
     latent_dim: ${model.eps_theta_mod.encoder_dim}
     decoder_type: ${model.eps_theta_mod.motion_encoder.encoder_type}
     use_convtranspose: False
+    patch_size: ${model.eps_theta_mod.patch_size}
   # conformer parameters
   num_att_heads: 64  # 8  16 32  64
   attention_dropout_p: 0.1

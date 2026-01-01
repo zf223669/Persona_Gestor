@@ -70,8 +70,10 @@ class Conv1dSubampling(nn.Module):
         - **output_lengths** (batch): list of seqduence output lengths
     """
 
-    def __init__(self, in_channels: int, out_channels: int, encoder_kernel_size: int = 3, batch_norm=False) -> None:
+    def __init__(self, in_channels: int, out_channels: int, encoder_kernel_size: int = 3, batch_norm=False, pca_dim:int=256, patch_size:int = 4 ) -> None:
         super(Conv1dSubampling, self).__init__()
+        self.pca_dim = pca_dim
+        self.patch_size = patch_size         # 4 * 4 * 156 = 524
         if encoder_kernel_size == 1:
             self.sequential = nn.Sequential(
                 Transpose(shape=(1, 2)),
@@ -81,10 +83,13 @@ class Conv1dSubampling(nn.Module):
         elif encoder_kernel_size == 3:
             self.sequential = nn.Sequential(
                 Transpose(shape=(1, 2)),
-                nn.Conv1d(in_channels=in_channels, out_channels=out_channels, kernel_size=encoder_kernel_size, stride=1,
-                          padding=1, padding_mode='replicate'),
+                # nn.Conv1d(in_channels=in_channels, out_channels=out_channels, kernel_size=encoder_kernel_size, stride=1,
+                #           padding=1, padding_mode='replicate'),
                 # Add Conv1d
-                # nn.Conv1d(in_channels=out_channels, out_channels=out_channels, kernel_size=1),
+                ## nn.Conv1d(in_channels=out_channels, out_channels=out_channels, kernel_size=1),
+                # Patch
+                nn.Conv1d(in_channels=in_channels, out_channels=self.pca_dim, kernel_size=self.patch_size, stride=self.patch_size, bias=False),
+                nn.Conv1d(self.pca_dim, out_channels, kernel_size=1, stride=1, bias=True),
                 Transpose(shape=(1, 2)),
             )
         elif encoder_kernel_size == 4:
@@ -147,9 +152,11 @@ def ConvNormRelu(in_channels, out_channels, downsample=False, padding=1, batchno
 
 class PoseEncoderConv(nn.Module):
     def __init__(self, gesture_features, encoder_dim, encoder_kernel_size=1, batch_norm=False, simple_encoder=True,
-                 encoder_type='single_conv'):
+                 encoder_type='single_conv',pca_dim=256,patch_size=4):
         super().__init__()
         print(f'Encoder Type: {encoder_type}')
+        self.pca_dim=pca_dim
+        self.patch_size = patch_size
         if encoder_type == 'stack_conv':
             self.net = nn.Sequential(
                 ConvNormRelu(gesture_features, encoder_dim // 2, batchnorm=True),
@@ -160,7 +167,7 @@ class PoseEncoderConv(nn.Module):
         elif encoder_type == 'single_conv':
             self.net = nn.Sequential(
                 Conv1dSubampling(in_channels=gesture_features, out_channels=encoder_dim,
-                                 encoder_kernel_size=encoder_kernel_size, batch_norm=batch_norm),
+                                 encoder_kernel_size=encoder_kernel_size, batch_norm=batch_norm,pca_dim=pca_dim,patch_size=patch_size),
             )
         elif encoder_type == 'separable_conv':
             self.net = nn.Sequential(
@@ -170,13 +177,6 @@ class PoseEncoderConv(nn.Module):
                           stride=1,
                           padding=1, padding_mode='replicate', bias=True),
                 nn.Conv1d(gesture_features, encoder_dim, kernel_size=1, bias=True),
-                # PointwiseConv1d(gesture_features, gesture_features * 2, stride=1, padding=0, bias=True),
-                # GLU(dim=1),
-                # DepthwiseConv1d(gesture_features, gesture_features, 1, stride=1),
-                # nn.BatchNorm1d(gesture_features),
-                # Swish(),
-                # PointwiseConv1d(gesture_features, encoder_dim, stride=1, padding=0, bias=True),
-                # nn.Dropout(p=0.1),
                 Transpose(shape=(1, 2)),
             )
         elif encoder_type == 'multi_conv':
@@ -185,18 +185,6 @@ class PoseEncoderConv(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv1d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_in', nonlinearity='leaky_relu')
-        # if not simple_encoder:
-        #     self.net = nn.Sequential(
-        #         ConvNormRelu(gesture_features, encoder_dim // 2, batchnorm=True),
-        #         ConvNormRelu(encoder_dim // 2, encoder_dim, batchnorm=True),
-        #         ConvNormRelu(encoder_dim, encoder_dim, True, batchnorm=True),
-        #         nn.Conv1d(encoder_dim, encoder_dim // 2, 3)
-        #     )
-        # else:
-        #     self.net = nn.Sequential(
-        #         Conv1dSubampling(in_channels=gesture_features, out_channels=encoder_dim,
-        #                          encoder_kernel_size=encoder_kernel_size, batch_norm=batch_norm),
-        #     )
 
     def forward(self, poses):
         # encode
@@ -205,13 +193,13 @@ class PoseEncoderConv(nn.Module):
 
 
 class PoseDecoderConv(nn.Module):
-    def __init__(self, pose_dim, latent_dim, decoder_type, use_convtranspose=False):
+    def __init__(self, pose_dim, latent_dim, decoder_type, use_convtranspose=False,patch_size = 4):
         super().__init__()
         if decoder_type == 'single_conv' or 'multi_conv':
             if not use_convtranspose:
                 self.net = nn.Sequential(
                     Transpose(shape=(1, 2)),
-                    nn.Conv1d(in_channels=latent_dim, out_channels=pose_dim, kernel_size=1),
+                    nn.Conv1d(in_channels=latent_dim, out_channels=patch_size*pose_dim, kernel_size=1),
                     Transpose(shape=(1, 2)),
                 )
             elif use_convtranspose:  # not good
@@ -224,13 +212,6 @@ class PoseDecoderConv(nn.Module):
             self.net = nn.Sequential(
                 nn.LayerNorm(latent_dim),
                 Transpose(shape=(1, 2)),
-                # PointwiseConv1d(latent_dim, latent_dim * 2, stride=1, padding=0, bias=True),
-                # GLU(dim=1),
-                # DepthwiseConv1d(latent_dim, latent_dim, 1, stride=1),
-                # nn.BatchNorm1d(latent_dim),
-                # Swish(),
-                # PointwiseConv1d(latent_dim, pose_dim, stride=1, padding=0, bias=True),
-                # nn.Dropout(p=0.1),
                 nn.Conv1d(latent_dim, latent_dim, kernel_size=1, groups=latent_dim, bias=True),
                 nn.Conv1d(latent_dim, pose_dim, kernel_size=1, bias=True),
                 Transpose(shape=(1, 2)),

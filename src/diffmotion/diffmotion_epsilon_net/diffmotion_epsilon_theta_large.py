@@ -130,6 +130,7 @@ class TrinityEpsilonTheta(nn.Module):
                  style_encode: bool = True,
                  use_DropKey: bool = False,
                  mask_ratio: float = 0.3,
+                 patch_size: int = 4,
                  # cond_dropout_noscale: bool =  True,
                  # cond_dropout_ratemax: float = 0.4,
                  ):
@@ -150,6 +151,7 @@ class TrinityEpsilonTheta(nn.Module):
         self.style_encode = style_encode
         self.use_DropKey = use_DropKey
         self.mask_ratio = mask_ratio
+        self.patch_size = patch_size
         ##################### Sytle Encoder #######################################
         if self.style_encode is True:
             if not conv_depthwise:
@@ -179,7 +181,10 @@ class TrinityEpsilonTheta(nn.Module):
         self.down_sampler = nn.Sequential(
             Transpose(shape=(1, 2)),
             # for base wavlm model
-            nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=201, stride=2, dilation=1),  # 20s
+            # nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=81, stride=18, dilation=1),   # patch 5
+            nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=63, stride=24, dilation=1),  # patch 5
+            # nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=101, stride=2, dilation=1),  # 10s
+            # nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=201, stride=2, dilation=1),  # 20s
             # nn.Conv1d(in_channels=768, out_channels=encoder_dim, kernel_size=41, stride=2, dilation=1),                 # 20s 24fps
             # 60 = d * (k - 1)
             Transpose(shape=(1, 2)),
@@ -232,9 +237,29 @@ class TrinityEpsilonTheta(nn.Module):
         else:
             wavlm_cond_style_embedded = wavlm_cond
         wavlm_cond_style_embedded = self.down_sampler(wavlm_cond_style_embedded)  # [64,58,512]
+        # wavlm_cond_style_embedded = wavlm_cond_style_embedded.permute(0, 2, 1)
+        # wavlm_cond_style_embedded = F.interpolate(
+        #     wavlm_cond_style_embedded,
+        #     size=80,
+        #     mode='linear',
+        #     align_corners=False
+        # ).permute(0, 2, 1)
         wavlm_cond_style_embedded = self.dropout(wavlm_cond_style_embedded)
         # count = (wavlm_cond_style_embedded == 0).sum().item()
         return wavlm_cond_style_embedded
+
+    def unpatchify(self, x, patch_size,channel):
+        """
+        x: (N, T, patch_size**2 * C)
+        imgs: (N, H, W, C)
+        """
+
+        t = x.shape[1] * patch_size
+
+        # x = x.reshape(shape=(x.shape[0], t, patch_size, channel))
+        # x = torch.einsum('nhwpqc->nchpwq', x)
+        gesture_seq = x.reshape(shape=(x.shape[0], t, channel))
+        return gesture_seq
 
     def forward(self, inputs, cond, time, processing_state='training', last_time_stamp=999):
         """
@@ -252,4 +277,5 @@ class TrinityEpsilonTheta(nn.Module):
         for block in self.blocks:
             x = block(x, c)
         x = self.final_layer(x, c)
-        return x
+        output = self.unpatchify(x, self.patch_size,156)
+        return output
