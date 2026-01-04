@@ -88,6 +88,8 @@ class Conv1dSubampling(nn.Module):
                 # Add Conv1d
                 ## nn.Conv1d(in_channels=out_channels, out_channels=out_channels, kernel_size=1),
                 # Patch
+                nn.Conv1d(in_channels=in_channels, out_channels=in_channels, kernel_size=encoder_kernel_size, stride=1,
+                          padding=1, padding_mode='replicate'),
                 nn.Conv1d(in_channels=in_channels, out_channels=self.pca_dim, kernel_size=self.patch_size, stride=self.patch_size, bias=False),
                 nn.Conv1d(self.pca_dim, out_channels, kernel_size=1, stride=1, bias=True),
                 Transpose(shape=(1, 2)),

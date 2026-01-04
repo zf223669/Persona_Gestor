@@ -47,55 +47,6 @@ class RelativeMultiHeadAttention(nn.Module):
         - **outputs**: Tensor produces by relative multi head attention module.
     """
 
-    # def build_mask(self, **kw):
-    #     assert 'context' in kw and 'key_len' in kw and 'bsz' in kw
-    #     context, key_len, bsz = kw['context'], kw['key_len'], kw['bsz']
-    #
-    #     if context.size(0) != bsz:
-    #         assert context.size(1) == bsz
-    #         context = context.transpose(0, 1)
-    #
-    #     """ position based -- gamma"""
-    #     forward_x = self.forward_position_x
-    #     backward_x = self.backward_position_x
-    #     self_x = torch.zeros(1).type_as(backward_x)
-    #     position_x = torch.cat([forward_x, self_x, backward_x], 0)
-    #
-    #     max_x_len = position_x.size(-1)
-    #     half_max_x_len = (max_x_len + 1) // 2
-    #
-    #     indices = torch.arange(key_len).unsqueeze(0).repeat(key_len, 1). \
-    #         add(torch.arange(half_max_x_len - key_len, half_max_x_len).flip([0]).unsqueeze(1)). \
-    #         view(-1).long().cuda()
-    #     position_x = position_x.view(-1)[indices].view(key_len, key_len)
-    #
-    #     """ head based -- gamma"""
-    #     head_x = self.head_x
-    #
-    #     """position and head based -- gamma
-    #       gamma num_heads * key_len * key_len"""
-    #     x = position_x.unsqueeze(0).repeat(self.num_heads, 1, 1). \
-    #         add(head_x.unsqueeze(-1).unsqueeze(-1))
-    #
-    #     """ context weight based -- x"""
-    #     context_x = self.context_x_fc(context).unsqueeze(1)
-    #
-    #     log_weights = context_x.add(x.unsqueeze(0).repeat(bsz, 1, 1, 1)).sigmoid().clamp(1e-10).log()
-    #
-    #     if key_len == context.size(1):
-    #         return log_weights
-    #     else:
-    #         return log_weights[:, :, -1].unsqueeze(2)
-    #
-    # def reset_parameters(self):
-    #     if self.forward_position_x is not None:
-    #         nn.init.normal_(self.forward_position_x)
-    #     if self.backward_position_x is not None:
-    #         nn.init.normal_(self.backward_position_x)
-    #     if self.head_x is not None:
-    #         nn.init.normal_(self.head_x)
-    #     if self.context_x_fc is not None:
-    #         nn.init.xavier_uniform_(self.context_x_fc.weight)
 
     def __init__(
             self,

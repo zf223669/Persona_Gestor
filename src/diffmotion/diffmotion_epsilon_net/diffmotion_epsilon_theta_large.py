@@ -182,7 +182,8 @@ class TrinityEpsilonTheta(nn.Module):
             Transpose(shape=(1, 2)),
             # for base wavlm model
             # nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=81, stride=18, dilation=1),   # patch 5
-            nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=63, stride=24, dilation=1),  # patch 5
+            #nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=63, stride=24, dilation=1),  # patch 10
+            nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=68, stride=19, dilation=1),  # patch 8
             # nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=101, stride=2, dilation=1),  # 10s
             # nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=201, stride=2, dilation=1),  # 20s
             # nn.Conv1d(in_channels=768, out_channels=encoder_dim, kernel_size=41, stride=2, dilation=1),                 # 20s 24fps
