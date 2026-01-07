@@ -216,8 +216,6 @@ class TrinityEpsilonTheta(nn.Module):
                                               upper_offset=upper_offset,
                                               lower_offset=lower_offset,
                                               atten_sel=self.atten_sel,
-                                              dman_mask=dman_mask,
-                                              dman_position=dman_position,
                                               inf_pos=inf_pos,
                                               informer_factor=informer_factor,
                                               use_DropKey=self.use_DropKey,

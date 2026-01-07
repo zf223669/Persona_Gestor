@@ -28,8 +28,6 @@ class ConformerBlock(nn.Module):
                  conv_expansion_factor: int = 2,
                  conv_dropout_p: float = 0.1,
                  mask_selection: str = 'causalMask',
-                 dman_max_len: int = 200,
-                 dman_position: bool = False,
                  position_embedding: str = 'Transformer_FX',
                  condition_strategy: str = 'adaptive_layer_norm',
                  causal_mask_diagonal: int = 0,
@@ -61,15 +59,11 @@ class ConformerBlock(nn.Module):
                     num_heads=num_attention_heads,
                     dropout_p=attention_dropout_p,
                     mask_selection=self.mask_selection,
-                    dman_max_len=dman_max_len,
-                    dman_position=dman_position,
-                    inf_pos=inf_pos,
                     position_embedding_type=self.position_embedding,
                     causal_mask_diagonal=self.causal_mask_diagonal,  # for causal mask
                     upper_offset=self.upper_offset,  # for diagonal mask
                     lower_offset=self.lower_offset,
                     atten_sel=self.atten_sel,
-                    dman_mask=dman_mask,
                     informer_factor=informer_factor,
                     use_DropKey=self.use_DropKey,
                     mask_ratio=self.mask_ratio,
@@ -84,11 +78,6 @@ class ConformerBlock(nn.Module):
                 ),
             ),
         )
-        # self.feed_forward_02 = FeedForwardModule(
-        #     encoder_dim=hidden_size,
-        #     expansion_factor=feed_forward_expansion_factor,
-        #     dropout_p=feed_forward_dropout_p,
-        # )
         mlp_hidden_dim = int(hidden_size * mlp_ratio)
         approx_gelu = lambda: nn.GELU(approximate="tanh")
         self.mlp = Mlp(in_features=hidden_size, hidden_features=mlp_hidden_dim, act_layer=approx_gelu, drop=0)

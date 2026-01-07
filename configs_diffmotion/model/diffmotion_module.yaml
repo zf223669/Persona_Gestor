@@ -22,10 +22,7 @@ eps_theta_mod:
   target_dim: ${model.gesture_features}
   time_emb_dim: ${model.eps_theta_mod.encoder_dim}
   atten_sel: 'informer'     # conformer 'informer', 'full_transformer'
-  mask_sel: 'dman'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
-  dman_mask: 'no_mask'
-  dman_position: False
-  dman_max_len: 400          # max_seq_len 100 200
+  mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
   inf_pos: False
   informer_factor: 5
 #  re_weight_m: 1              # 1 = dman

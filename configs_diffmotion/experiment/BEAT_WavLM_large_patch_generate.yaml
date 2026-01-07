@@ -73,9 +73,6 @@ model:
     atten_sel: 'conformer'          # conformer 'informer', 'full_transformer'
 
     mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
-    dman_mask: 'no_mask'
-    dman_max_len: 400               # max_seq_len 120, 100 200 300 400
-    dman_position: False
     separate_wavlm: False     # True for using  all different layer result of wavlm encoder, False for one layer with walm_layer
     inf_pos: False
     informer_factor: 5
