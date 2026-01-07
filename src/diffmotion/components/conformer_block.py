@@ -1,9 +1,8 @@
-import torch
+
 import torch.nn as nn
 from timm.models.vision_transformer import Mlp
 from src.diffmotion.components.conformer.attention import MultiHeadedSelfAttentionModule
 from src.diffmotion.components.conformer.convolution import ConformerConvModule
-from src.diffmotion.components.conformer.feed_forward import FeedForwardModule
 from src.diffmotion.components.conformer.modules import ResidualConnectionModule
 from src import utils
 from src.diffmotion.components.conformer.CrossAttention import CrossAttention
@@ -20,8 +19,6 @@ class ConformerBlock(nn.Module):
     def __init__(self,
                  hidden_size: int,
                  mlp_ratio: float = 4.0,
-                 feed_forward_expansion_factor: int = 4,
-                 feed_forward_dropout_p: float = 0.1,
                  num_attention_heads: int = 8,
                  attention_dropout_p: float = 0.1,
                  conv_kernel_size: int = 3,
@@ -34,9 +31,6 @@ class ConformerBlock(nn.Module):
                  upper_offset: int = 20,
                  lower_offset: int = -20,
                  atten_sel: str = 'conformer',
-                 dman_mask: str = 'no_mask',
-                 informer_factor: int = 5,
-                 inf_pos: bool = False,
                  use_DropKey: bool = False,
                  mask_ratio: float = 0.3,
                  **block_kwargs):
@@ -64,7 +58,6 @@ class ConformerBlock(nn.Module):
                     upper_offset=self.upper_offset,  # for diagonal mask
                     lower_offset=self.lower_offset,
                     atten_sel=self.atten_sel,
-                    informer_factor=informer_factor,
                     use_DropKey=self.use_DropKey,
                     mask_ratio=self.mask_ratio,
                 ),

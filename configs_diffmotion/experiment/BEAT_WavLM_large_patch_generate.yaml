@@ -74,8 +74,6 @@ model:
 
     mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
     separate_wavlm: False     # True for using  all different layer result of wavlm encoder, False for one layer with walm_layer
-    inf_pos: False
-    informer_factor: 5
     upper_offset: 10
     lower_offset: -10
 #    re_weight_m: 1

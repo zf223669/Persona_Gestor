@@ -102,9 +102,6 @@ class TrinityEpsilonTheta(nn.Module):
                  time_emb_dim: int = 512,
                  atten_sel: str = 'conformer',  # 'informer', 'full_transformer'
                  mask_sel: str = 'causalMask',  # 'tridiagonal_matrix', 'no_mask'
-                 dman_mask: str = 'no_mask',
-                 dman_position: bool = False,
-                 inf_pos: bool = False,
                  dman_max_len: int = 10,
                  separate_wavlm: bool = False,
                  wavlm_layer: int = 12,
@@ -126,7 +123,6 @@ class TrinityEpsilonTheta(nn.Module):
                  motion_decoder: nn = None,
                  cond_dropout_rate: float = 0,
                  conv_depthwise: bool = False,
-                 informer_factor: int = 5,
                  style_encode: bool = True,
                  use_DropKey: bool = False,
                  mask_ratio: float = 0.3,
@@ -147,7 +143,6 @@ class TrinityEpsilonTheta(nn.Module):
         self.motion_decoder = motion_decoder
         self.separate_wavlm = separate_wavlm
         self.wavlm_layer = wavlm_layer
-        self.inf_pos = inf_pos
         self.style_encode = style_encode
         self.use_DropKey = use_DropKey
         self.mask_ratio = mask_ratio
@@ -216,8 +211,6 @@ class TrinityEpsilonTheta(nn.Module):
                                               upper_offset=upper_offset,
                                               lower_offset=lower_offset,
                                               atten_sel=self.atten_sel,
-                                              inf_pos=inf_pos,
-                                              informer_factor=informer_factor,
                                               use_DropKey=self.use_DropKey,
                                               mask_ratio=self.mask_ratio,
                                               ))

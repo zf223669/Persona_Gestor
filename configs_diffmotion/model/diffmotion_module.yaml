@@ -23,8 +23,6 @@ eps_theta_mod:
   time_emb_dim: ${model.eps_theta_mod.encoder_dim}
   atten_sel: 'informer'     # conformer 'informer', 'full_transformer'
   mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
-  inf_pos: False
-  informer_factor: 5
 #  re_weight_m: 1              # 1 = dman
   separate_wavlm: False     # True for using  all different layer result of wavlm encoder, False for one layer with walm_layer
   wavlm_layer: 12           # 0 ~ 12
