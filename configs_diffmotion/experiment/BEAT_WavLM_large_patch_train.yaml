@@ -14,7 +14,7 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_train_13"
+task_name: "BEAT_W_L_train_14"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
@@ -62,7 +62,7 @@ model:
   linear_end: 8e-2    # 5e-2
 
   gesture_features: 156 # 69 65
-  encoder_dim: 1408   # 1280
+  encoder_dim: 1280   # 1280
   learning_rate: 2.0e-4
   sampler: "DDPM" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
   ddim_steps: 200 # 10 ~ 100 for timesteps=500
@@ -88,7 +88,7 @@ model:
     motion_encoder:
       encoder_type: 'single_conv' # 'single_conv' 'separable_conv'
       encoder_kernel_size: 3
-      pca_dim: 1280
+      pca_dim: 1024
       patch_size: ${model.eps_theta_mod.patch_size}
     wavLMEncoder:
       # checkpoint_path: ${paths.root_dir}/src/utils/wavlm/pretrain-models/WavLM-Base+.pt
@@ -112,7 +112,7 @@ data:
   pin_memory: False
   batch_size: 18    # 58: 6s   28: 10s 16:15S  8:20s
   num_workers: 18
-  is_smoothing: False
+  is_smoothing: True
   test_style: '13_lu_0_9_9' #'test_file_Recording_008_'
 
 
