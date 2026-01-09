@@ -25,7 +25,7 @@ import src.diffmotion.components.mask.mask as mask_strategy
 from torch.nn.parameter import Parameter
 
 try:
-    from spas_sage_attn import spas_sage2_attn_meansim_topk_cuda
+    from src.diffmotion.components.spas_sage_attn import spas_sage2_attn_meansim_topk_cuda
 except ImportError:
     print("请先安装 SpargeAttn: pip install ninja && python setup.py install")
 
@@ -91,6 +91,7 @@ class RelativeMultiHeadAttention(nn.Module):
         context = spas_sage2_attn_meansim_topk_cuda(
             q, k, v,
             topk=self.sparge_topk,
+            tensor_layout='HND',
             is_causal=self.is_causal
         )
 

@@ -382,6 +382,21 @@ class TrinityDiffmotionModule(LightningModule):
     def model_step(self, batch: Any):
         joint_data = batch['joint_data']  # [B, T, Feature] [B,360,65]
         cond = batch['cond']  # [B, T, Feature] [B, 360, 80]
+
+        # 确保时间维度为512
+        # current_len = joint_data.size(1)
+        # if current_len < 512:
+        #     # 对joint_data进行padding
+        #     padding_len = 512 - current_len
+        #     joint_data = torch.nn.functional.pad(joint_data, (0, 0, 0, padding_len), mode='constant', value=0)
+        #
+        #     # 对cond进行同样的padding
+        #     cond = torch.nn.functional.pad(cond, (0, 0, 0, padding_len), mode='constant', value=0)
+        # elif current_len > 512:
+        #     # 截断到512
+        #     joint_data = joint_data[:, :512, :]
+        #     cond = cond[:, :512, :]
+
         loss, loss_dict = self.forward(joint_data, cond)
         if torch.isnan(loss).any():
             raise RuntimeError(f'Detected NaN loss at step {self.step}.')
@@ -482,33 +497,10 @@ class TrinityDiffmotionModule(LightningModule):
         for num in range(0, self.num_sequences):
             start_time = time.perf_counter()
             log.info(f'Generating {num} sequences: file name: {self.bvh_save_file}!!!')
-            with self.ema_scope("Plotting"):
-                if self.sampler == "DDPM":
-                    samples = self.sample(cond=control_all,
-                                          shape=future_samples.shape,
-                                          # batch_size=control_all.shape[0],
-                                          return_intermediates=False)
-                elif self.sampler == "DDIM":
-                    pass
-                    # from src.diffmotion.components.samplers.Trinity_ddim import TrinityDDIMSampler
-                    # ddim_sampler = TrinityDDIMSampler(model=self, schedule=self.beta_schedule)
-                    # shape = (control_all.shape[1] // 16000 * 20, self.gesture_features)
-                    # samples, intermediates = ddim_sampler.sample(S=self.ddim_steps,
-                    #                                              batch_size=control_all.shape[0],
-                    #                                              shape=shape,
-                    #                                              cond=control_all,
-                    #                                              verbose=False)
-                elif self.sampler in ['dpmsolver', 'dpmsolver++']:
-                    from src.utils.LDM.DiffusionSampler.dpm_solver_pytorch import NoiseScheduleVP, model_wrapper, \
-                        DPM_Solver
-                    model_kwargs = {"cond_inplanes": control_all}
-                    noise_schedule = NoiseScheduleVP(schedule='cosine')  # , betas=self.betas
-                    model_fn = model_wrapper(
-                        self.model,
-                        noise_schedule,
-                        model_type="noise",  # or "x_start" or "v" or "score"
-                        model_kwargs=model_kwargs,
-                    )
+            samples = self.sample(cond=control_all,
+                                shape=future_samples.shape,
+                                # batch_size=control_all.shape[0],
+                                return_intermediates=False)
             # TODO
             # if use_gesture_encoder:
             #    future_samples = Decoder(future_samples)

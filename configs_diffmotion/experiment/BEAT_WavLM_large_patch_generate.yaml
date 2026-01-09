@@ -6,7 +6,7 @@
 defaults:
   - override /data: diffmotion_datamodule.yaml
   - override /model: diffmotion_module.yaml
-  - override /logger: wandb.yaml # wandb.yaml
+  - override /logger: null # wandb.yaml
   - override /callbacks: callbacks_trinity_diffusion.yaml
 #  - override /trainer: ddp.yaml
   - override /trainer: Trinity_gpu.yaml
@@ -49,10 +49,21 @@ trainer:
 #  precision: 16  # worst
 
 profiler:
-  _target_: pytorch_lightning.profilers.SimpleProfiler
-  extended: True
+#  _target_: pytorch_lightning.profilers.AdvancedProfiler
 #  dirpath: ${paths.output_dir}/
 #  filename: 'profiler'
+
+    _target_: pytorch_lightning.profilers.SimpleProfiler
+    extended: True
+
+#  _target_: pytorch_lightning.profilers.PyTorchProfiler
+#  #on_trace_ready: torch.profiler.tensorboard_trace_handler("./log")
+#  record_shapes: True
+#  profile_memory: True
+#  with_stack: True
+#  dirpath: ${paths.output_dir}/
+#  filename: 'profiler'
+
 
 model:
   param_for_name: ""
@@ -105,8 +116,8 @@ paths:
 data:
   data_root: ${paths.data_dir}/feat_20fps_20s_WithExp_waveform_WithStd
   pin_memory: False
-  batch_size: 18    # 58: 6s   28: 10s 16:15S  8:20s
-  num_workers: 18
+  batch_size: 10    # 58: 6s   28: 10s 16:15S  8:20s
+  num_workers: 10
   is_smoothing: True
   window_length: 21 # 51 to0 large
   polyorder: 4  # 2 too smooth, 4

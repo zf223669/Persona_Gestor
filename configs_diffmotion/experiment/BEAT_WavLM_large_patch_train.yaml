@@ -14,7 +14,7 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_train_14"
+task_name: "BEAT_W_L_train_1"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
@@ -32,7 +32,7 @@ logger:
     id:  ${task_name} # pass correct id to resume experiment! ${task_name}
 #    tags: ${tags}
     name: ${task_name}
-    project: "BEAT_Patch-2"
+    project: "BEAT_SpargeAtten"
     group: "BEAT_W_L_train"
 
 trainer:

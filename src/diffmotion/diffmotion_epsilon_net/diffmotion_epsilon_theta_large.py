@@ -259,6 +259,7 @@ class TrinityEpsilonTheta(nn.Module):
         condition: [B, T, D] tensor of control seq, such as audio features
         dif_time_step: [N,] tensor of diffusion timesteps
         """
+
         t = self.diffusion_embedding(time.type(torch.long)).unsqueeze(1)
 
         x = self.motion_encoder(inputs)  # [64,58,512]
