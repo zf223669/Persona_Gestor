@@ -1488,6 +1488,7 @@ class DownSampler(BaseEstimator, TransformerMixin):
             if orig_fps % self.tgt_fps != 0:
                 print(
                     "error orig_fps (" + str(orig_fps) + ") is not dividable with tgt_fps (" + str(self.tgt_fps) + ")")
+                continue
             else:
                 print("downsampling with rate: " + str(rate))
 

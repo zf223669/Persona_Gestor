@@ -1,15 +1,15 @@
 
 # in terminal,if you run the code from terminal, please use the following code to specify the data_dir and processed_dir
-data_dir: ./data/BEAT/Sources
-processed_dir: ./data/BEAT/processed_20s
+#data_dir: ./data/BEAT/Sources
+#processed_dir: ./data/BEAT/processed_10s
 
 # in IDE, if you run the code from IDE, please use the following code to specify the data_dir and processed_dir
-#data_dir: ../../../../data/BEAT/Sources
-#processed_dir: ../../../../data/BEAT/processed_20s_con_remover
+data_dir: ../../../../data/BEAT/Sources
+processed_dir: ../../../../data/BEAT/processed_10s
 
 # Attention: Do not modify the following parameters unless you know what you are doing.
-train_window_secs: 20
-test_window_secs: 20
+train_window_secs: 10
+test_window_secs: 10
 window_overlap: 0.5
 fps: 20     # 20 / 24
 n_mels : 20

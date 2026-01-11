@@ -14,7 +14,7 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_train_1"
+task_name: "Sparse_BEAT_W_L_train_3"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
@@ -32,7 +32,7 @@ logger:
     id:  ${task_name} # pass correct id to resume experiment! ${task_name}
 #    tags: ${tags}
     name: ${task_name}
-    project: "BEAT_SpargeAtten"
+    project: "BEAT_Sparse_ViT"
     group: "BEAT_W_L_train"
 
 trainer:
@@ -49,8 +49,18 @@ trainer:
 #  precision: 16  # worst
 
 profiler:
-  _target_: pytorch_lightning.profilers.SimpleProfiler
-  extended: True
+#  _target_: pytorch_lightning.profilers.AdvancedProfiler
+#  dirpath: ${paths.output_dir}/
+#  filename: 'profiler'
+
+    _target_: pytorch_lightning.profilers.SimpleProfiler
+    extended: True
+
+#  _target_: pytorch_lightning.profilers.PyTorchProfiler
+#  #on_trace_ready: torch.profiler.tensorboard_trace_handler("./log")
+#  record_shapes: True
+#  profile_memory: True
+#  with_stack: True
 #  dirpath: ${paths.output_dir}/
 #  filename: 'profiler'
 

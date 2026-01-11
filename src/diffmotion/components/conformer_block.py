@@ -2,7 +2,8 @@
 import torch.nn as nn
 from timm.models.vision_transformer import Mlp
 # from src.diffmotion.components.conformer.attention import MultiHeadedSelfAttentionModule
-from src.diffmotion.components.conformer.sparge_attn import MultiHeadedSelfAttentionModule
+# from src.diffmotion.components.conformer.sparge_attn import MultiHeadedSelfAttentionModule
+from src.diffmotion.components.conformer.sparse_vit import MultiHeadedSelfAttentionModule
 from src.diffmotion.components.conformer.convolution import ConformerConvModule
 from src.diffmotion.components.conformer.modules import ResidualConnectionModule
 from src import utils

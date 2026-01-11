@@ -2,7 +2,7 @@
 
 rich_progress_bar:
   _target_: lightning.pytorch.callbacks.RichProgressBar
-  refresh_rate: 50
+  refresh_rate: 100
 ##console_kwargs: {"width": 2048}
   console_kwargs: {"force_terminal": True,"width": 1024}
 #  console_kwargs: {"force_terminal": True}

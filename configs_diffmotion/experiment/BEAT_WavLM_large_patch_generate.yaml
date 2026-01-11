@@ -6,7 +6,7 @@
 defaults:
   - override /data: diffmotion_datamodule.yaml
   - override /model: diffmotion_module.yaml
-  - override /logger: null # wandb.yaml
+  - override /logger: wandb.yaml # wandb.yaml
   - override /callbacks: callbacks_trinity_diffusion.yaml
 #  - override /trainer: ddp.yaml
   - override /trainer: Trinity_gpu.yaml
@@ -14,13 +14,13 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_train_14"
+task_name: "Sparse_BEAT_W_L_train_3"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
 tags: ["Patch"]
 
-ckpt_path: /home/zf/Persona_Gestor/logs/log_BEAT/BEAT_W_L_train_14/multi/260105_175106/0_260105_175106/checkpoints/epoch_epoch=034.ckpt
+ckpt_path: /home/zf/Persona_Gestor/logs/log_BEAT/Sparse_BEAT_W_L_train_3/multi/260111_095443/0_260111_095443/checkpoints/epoch_epoch=019.ckpt
 seed: null
 train: False
 test: True
@@ -32,7 +32,7 @@ logger:
     id:  ${task_name} # pass correct id to resume experiment! ${task_name}
 #    tags: ${tags}
     name: ${task_name}
-    project: "BEAT_Patch-2"
+    project: "BEAT_Sparse_ViT"
     group: "BEAT_W_L_train"
 
 trainer:
@@ -46,7 +46,7 @@ trainer:
 #  accumulate_grad_batches: 8
   fast_dev_run: False
 #  profiler: "simple"  # "advanced" "simple"
-#  precision: 16  # worst
+  precision: bf16-mixed  # worst
 
 profiler:
 #  _target_: pytorch_lightning.profilers.AdvancedProfiler
@@ -63,7 +63,6 @@ profiler:
 #  with_stack: True
 #  dirpath: ${paths.output_dir}/
 #  filename: 'profiler'
-
 
 model:
   param_for_name: ""
@@ -116,11 +115,9 @@ paths:
 data:
   data_root: ${paths.data_dir}/feat_20fps_20s_WithExp_waveform_WithStd
   pin_memory: False
-  batch_size: 10    # 58: 6s   28: 10s 16:15S  8:20s
-  num_workers: 10
+  batch_size: 18    # 58: 6s   28: 10s 16:15S  8:20s
+  num_workers: 18
   is_smoothing: True
-  window_length: 21 # 51 to0 large
-  polyorder: 4  # 2 too smooth, 4
   test_style: '13_lu_0_9_9' #'test_file_Recording_008_'
 
 
