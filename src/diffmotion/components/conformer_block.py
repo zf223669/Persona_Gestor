@@ -33,8 +33,6 @@ class ConformerBlock(nn.Module):
                  upper_offset: int = 20,
                  lower_offset: int = -20,
                  atten_sel: str = 'conformer',
-                 use_DropKey: bool = False,
-                 mask_ratio: float = 0.3,
                  **block_kwargs):
         super().__init__()
         self.mask_selection = mask_selection
@@ -45,8 +43,6 @@ class ConformerBlock(nn.Module):
         self.lower_offset = lower_offset
         self.norm1 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
         self.atten_sel = atten_sel
-        self.use_DropKey = use_DropKey
-        self.mask_ratio = mask_ratio
 
         self.attn = nn.Sequential(
             ResidualConnectionModule(
@@ -60,8 +56,6 @@ class ConformerBlock(nn.Module):
                     upper_offset=self.upper_offset,  # for diagonal mask
                     lower_offset=self.lower_offset,
                     atten_sel=self.atten_sel,
-                    use_DropKey=self.use_DropKey,
-                    mask_ratio=self.mask_ratio,
                 ),
             ),
             ResidualConnectionModule(

@@ -14,13 +14,13 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "Sparse_BEAT_W_L_train_3"
+task_name: "FastRelativeMultiHeadAttention_train"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
 tags: ["Patch"]
 
-ckpt_path: /home/zf/Persona_Gestor/logs/log_BEAT/Sparse_BEAT_W_L_train_3/multi/260111_095443/0_260111_095443/checkpoints/epoch_epoch=019.ckpt
+ckpt_path: /home/zf/Persona_Gestor/logs/log_BEAT/FastRelativeMultiHeadAttention_train/multi/260111_210914/0_260111_210914/checkpoints/epoch_epoch=029.ckpt
 seed: null
 train: False
 test: True
@@ -46,7 +46,7 @@ trainer:
 #  accumulate_grad_batches: 8
   fast_dev_run: False
 #  profiler: "simple"  # "advanced" "simple"
-  precision: bf16-mixed  # worst
+  precision: bf16  # worst
 
 profiler:
 #  _target_: pytorch_lightning.profilers.AdvancedProfiler
@@ -82,7 +82,7 @@ model:
     _target_: src.diffmotion.diffmotion_epsilon_net.diffmotion_epsilon_theta_large.TrinityEpsilonTheta
     atten_sel: 'conformer'          # conformer 'informer', 'full_transformer'
 
-    mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
+    mask_sel: 'no_mask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
     separate_wavlm: False     # True for using  all different layer result of wavlm encoder, False for one layer with walm_layer
     upper_offset: 10
     lower_offset: -10
@@ -100,7 +100,6 @@ model:
       checkpoint_path: ${paths.root_dir}/src/utils/wavlm/pretrain-models/WavLM-Large.pt
     cond_dropout_rate: 0.1
     conv_depthwise: True
-    use_DropKey: False
   scheduler_config: # 10000 warmup steps
     target: src.utils.LDM.lr_scheduler.LambdaLinearScheduler
     params:

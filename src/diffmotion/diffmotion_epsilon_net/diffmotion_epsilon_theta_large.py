@@ -124,11 +124,7 @@ class TrinityEpsilonTheta(nn.Module):
                  cond_dropout_rate: float = 0,
                  conv_depthwise: bool = False,
                  style_encode: bool = True,
-                 use_DropKey: bool = False,
-                 mask_ratio: float = 0.3,
                  patch_size: int = 4,
-                 # cond_dropout_noscale: bool =  True,
-                 # cond_dropout_ratemax: float = 0.4,
                  ):
         super().__init__()
 
@@ -144,8 +140,6 @@ class TrinityEpsilonTheta(nn.Module):
         self.separate_wavlm = separate_wavlm
         self.wavlm_layer = wavlm_layer
         self.style_encode = style_encode
-        self.use_DropKey = use_DropKey
-        self.mask_ratio = mask_ratio
         self.patch_size = patch_size
         ##################### Sytle Encoder #######################################
         if self.style_encode is True:
@@ -192,9 +186,6 @@ class TrinityEpsilonTheta(nn.Module):
             time_emb_dim, proj_dim=encoder_dim
         )
         self.blocks = nn.ModuleList([])
-        if use_DropKey:
-            total_mask_ratio = self.mask_ratio
-            decrease_step = total_mask_ratio / block_depth
         for i in range(block_depth):
             self.blocks.append(ConformerBlock(hidden_size=encoder_dim,
                                               mlp_ratio=mlp_ratio,
@@ -211,11 +202,7 @@ class TrinityEpsilonTheta(nn.Module):
                                               upper_offset=upper_offset,
                                               lower_offset=lower_offset,
                                               atten_sel=self.atten_sel,
-                                              use_DropKey=self.use_DropKey,
-                                              mask_ratio=self.mask_ratio,
                                               ))
-            if use_DropKey:
-                self.mask_ratio -= decrease_step
         self.final_layer = FinalLayer(encoder_dim, target_dim, motion_decoder=motion_decoder)
         # self.c = None
         self.wav_encode = None

@@ -14,7 +14,7 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "Sparse_BEAT_W_L_train_3"
+task_name: "FastAttention_causal_train"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
@@ -46,7 +46,7 @@ trainer:
 #  accumulate_grad_batches: 8
   fast_dev_run: False
 #  profiler: "simple"  # "advanced" "simple"
-#  precision: 16  # worst
+  precision: bf16-mixed  # worst
 
 profiler:
 #  _target_: pytorch_lightning.profilers.AdvancedProfiler
@@ -100,7 +100,6 @@ model:
       checkpoint_path: ${paths.root_dir}/src/utils/wavlm/pretrain-models/WavLM-Large.pt
     cond_dropout_rate: 0.1
     conv_depthwise: True
-    use_DropKey: False
   scheduler_config: # 10000 warmup steps
     target: src.utils.LDM.lr_scheduler.LambdaLinearScheduler
     params:
