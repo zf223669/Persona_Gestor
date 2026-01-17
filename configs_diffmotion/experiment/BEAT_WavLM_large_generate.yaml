@@ -20,7 +20,7 @@ use_auto_scale_batch_size: False
 #reload_dataloaders_every_epoch: False
 tags: ["BEAT_W_L_generate"]
 
-ckpt_path: # set the pre-trained model path here!! like: /path/to/your/checkpoint.ckpt
+ckpt_path: /home/zf/Persona_Gestor/ckpt_path/BEAT_WavLM_large_079.ckpt
 #ckpt_path: null
 seed: null
 train: False
@@ -64,7 +64,7 @@ model:
   gesture_features: 156 # 69 65
   encoder_dim: 1280   # 1024
   learning_rate: 2.0e-4
-  sampler: "DDPM" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
+  sampler: "dpmsolver++" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
   ddim_steps: 200 # 10 ~ 100 for timesteps=500
   num_sequences: 1  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
   eps_theta_mod:

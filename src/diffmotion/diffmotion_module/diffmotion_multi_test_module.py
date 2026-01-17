@@ -501,13 +501,30 @@ class TrinityDiffmotionModule(LightningModule):
                 elif self.sampler in ['dpmsolver', 'dpmsolver++']:
                     from src.utils.LDM.DiffusionSampler.dpm_solver_pytorch import NoiseScheduleVP, model_wrapper, \
                         DPM_Solver
-                    model_kwargs = {"cond_inplanes": control_all}
-                    noise_schedule = NoiseScheduleVP(schedule='cosine')  # , betas=self.betas
+                    # 1. 定义噪声进度 (VP 指的是 Variance Preserving，即 DDPM/DDIM 的基础)
+                    # 使用与你代码一致的 alphas_cumprod
+                    noise_schedule = NoiseScheduleVP(schedule='discrete', betas=self.betas)
+
+                    # 2. 封装模型，使其适配 Solver 接口
+                    model_kwargs = {"cond_inplanes": control_all}  # 对应你 model 的 cond 参数
                     model_fn = model_wrapper(
                         self.model,
                         noise_schedule,
-                        model_type="noise",  # or "x_start" or "v" or "score"
+                        model_type="noise",  # 你模型预测的是 eps
                         model_kwargs=model_kwargs,
+                    )
+
+                    # 3. 初始化 Solver
+                    dpm_solver = DPM_Solver(model_fn, noise_schedule, algorithm_type=self.sampler)
+
+                    # 4. 执行采样
+                    # S 对应 solver_steps，通常 10-20 步即可
+                    samples = dpm_solver.sample(
+                        future_samples.to(self.device),  # 初始噪声
+                        steps=self.solver_steps,
+                        order=self.solver_order,
+                        skip_type=self.solver_skip_type,
+                        method=self.solver_method,
                     )
             # TODO
             # if use_gesture_encoder:
