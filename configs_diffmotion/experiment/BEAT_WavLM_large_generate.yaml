@@ -14,7 +14,7 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_generate"
+task_name: "BEAT_W_L_dpm_solver_generate"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
@@ -65,6 +65,10 @@ model:
   encoder_dim: 1280   # 1024
   learning_rate: 2.0e-4
   sampler: "dpmsolver++" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
+  solver_steps: 60
+  solver_order: 1
+  solver_skip_type: 'time_uniform'    # 'time_uniform' or 'logSNR' or 'time_quadratic'
+  solver_method: 'singlestep'          # 'singlestep' or 'multistep' or 'singlestep_fixed' or 'adaptive'
   ddim_steps: 200 # 10 ~ 100 for timesteps=500
   num_sequences: 1  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
   eps_theta_mod:
@@ -108,6 +112,6 @@ data:
   batch_size: 32    # 58: 6s   28: 10s 16:15S  8:20s
   num_workers: 32
   is_smoothing: False
-  test_style: ['16_jorge_0_65_65']
+  test_style: ['13_lu_0_9_9']
 
 
