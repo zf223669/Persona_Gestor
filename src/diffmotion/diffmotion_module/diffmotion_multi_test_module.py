@@ -489,43 +489,28 @@ class TrinityDiffmotionModule(LightningModule):
                                           # batch_size=control_all.shape[0],
                                           return_intermediates=False)
                 elif self.sampler == "DDIM":
-                    log.info(f"Using DDIM Sampler with {self.ddim_steps} steps")
-                    # 你可以在这里指定 eta。0.0 为纯 DDIM，1.0 则模拟 DDPM 的随机感
-                    samples = self.ddim_sample_loop(cond=control_all,
-                                                    shape=future_samples.shape,
-                                                    eta=0.0,  # 或者 1.0 来消除你提到的抖动
-                                                    )
+                    pass # TODO
                 elif self.sampler in ['dpmsolver', 'dpmsolver++']:
-                    from src.utils.LDM.DiffusionSampler.dpm_solver_pytorch import NoiseScheduleVP, model_wrapper, \
-                        DPM_Solver
-                    # 1. 定义噪声进度 (VP 指的是 Variance Preserving，即 DDPM/DDIM 的基础)
-                    # 使用与你代码一致的 alphas_cumprod
-                    noise_schedule = NoiseScheduleVP(schedule='discrete',alphas_cumprod=self.alphas_cumprod)
+                    pass # TODO
+                elif self.sampler == "solver-v3":
+                    pass # TODO
+                elif self.sampler == "unipc":
+                    from src.utils.uni_pc import NoiseScheduleVP,model_wrapper,UniPC
+                    noise_Schedule = NoiseScheduleVP(schedule='discrete',alphas_cumprod=self.alphas_cumprod)
+                    # model_kwards = {'cond':control_all}
+                    model_fn = model_wrapper(model=self.model, noise_schedule=noise_Schedule, condition=control_all,
+                                             model_type="noise",guidance_type='classifier-free')
+                    unipc = UniPC(model_fn=model_fn,noise_schedule=noise_Schedule,algorithm_type="noise_prediction")
+                    device = self.betas.device
+                    shape = future_samples.shape
+                    img = torch.randn(shape, device=device) # 【3,400,156】
+                    samples = unipc.sample(x=img,steps=40, t_start=None, t_end=None,
+                                           order=2, skip_type='time_uniform',
+                                           method='multistep', lower_order_final=True,
+                                           denoise_to_zero=True,
+                                           return_intermediate=False,)
 
-                    # 2. 封装模型，使其适配 Solver 接口
-                    model_kwargs = {"cond_inplanes": control_all}  # 对应你 model 的 cond 参数
-                    model_fn = model_wrapper(
-                        self.model,
-                        noise_schedule,
-                        model_type="noise",  # 你模型预测的是 eps
-                        model_kwargs=model_kwargs,
-                        guidance_type='uncond'
-                    )
 
-                    # 3. 初始化 Solver
-                    dpm_solver = DPM_Solver(model_fn, noise_schedule, algorithm_type=self.sampler)
-
-                    # 4. 执行采样
-                    # S 对应 solver_steps，通常 10-20 步即可
-                    samples = dpm_solver.sample(
-                        future_samples.to(self.device),  # 初始噪声
-                        steps=self.solver_steps,
-                        order=self.solver_order,
-                        skip_type=self.solver_skip_type,
-                        method=self.solver_method,
-                        # denoise_to_zero=True
-                    )
-            # TODO
             # if use_gesture_encoder:
             #    future_samples = Decoder(future_samples)
             end_time = time.perf_counter()
@@ -547,73 +532,7 @@ class TrinityDiffmotionModule(LightningModule):
                                                    paramValue=self.param_for_name + str(num), test_index = dataloader_idx)
         return samples
 
-    @torch.no_grad()
-    def ddim_sample(self, x, cond, t, t_next, eta=0.0, clip_denoised=True):
-        """
-        核心 DDIM 采样步骤
-        eta (float): 0.0 为确定性 DDIM, 1.0 趋近于 DDPM 效果
-        """
-        b, *_, device = *x.shape, x.device
 
-        # 1. 预测噪声 epsilon_theta
-        model_out = self.model(inputs=x, cond=cond, time=t,
-                               processing_state=self.process_state,
-                               last_time_stamp=self.num_timesteps - 1)
-
-        # 2. 获取当前步和下一步的 alpha 累乘值
-        al_t = extract_into_tensor(self.alphas_cumprod, t, x.shape)
-        al_next = extract_into_tensor(self.alphas_cumprod_prev, t, x.shape)  # 简化处理，假设步长均匀
-        if t_next is not None:
-            al_next = extract_into_tensor(self.alphas_cumprod, t_next, x.shape)
-
-        # 3. 预测 x0 (x_start)
-        pred_x0 = (x - torch.sqrt(1 - al_t) * model_out) / torch.sqrt(al_t)
-        if clip_denoised:
-            pred_x0.clamp_(-1., 1.)
-
-        # 4. 计算 sigma (随机噪声强度)
-        # 根据公式: sigma = eta * sqrt((1-al_next)/(1-al_t) * (1 - al_t/al_next))
-        sigma_t = eta * torch.sqrt((1 - al_next) / (1 - al_t) * (1 - al_t / al_next))
-
-        # 5. 计算指向 xt 的方向向量
-        dir_xt = torch.sqrt(1 - al_next - sigma_t ** 2) * model_out
-
-        # 6. 加上随机成分 (如果 eta > 0)
-        noise = torch.randn_like(x) if eta > 0 else 0
-
-        x_prev = torch.sqrt(al_next) * pred_x0 + dir_xt + sigma_t * noise
-        return x_prev
-
-    @torch.no_grad()
-    def ddim_sample_loop(self, cond, shape, eta=0.0, schedule_type='quadratic'):
-        device = self.betas.device
-        b = shape[0]
-        img = torch.randn(shape, device=device)
-
-        # --- 步长选取算法 ---
-        if schedule_type == 'linear':
-            # 均匀分布的步长
-            times = np.flip(np.linspace(0, self.num_timesteps - 1, self.ddim_steps, dtype=int))
-        elif schedule_type == 'quadratic':
-            # 二次方分布：在 t 较小时（接近成品时）采样更密集
-            times = np.flip((np.linspace(0, np.sqrt(self.num_timesteps * 0.8), self.ddim_steps) ** 2).astype(int))
-            times = np.clip(times, 0, self.num_timesteps - 1)
-
-        times_next = np.append(times[1:], -1)
-
-        for i, j in tqdm(zip(times, times_next), total=len(times), desc=f'DDIM {schedule_type}'):
-            t = torch.full((b,), i, device=device, dtype=torch.long)
-            t_next = torch.full((b,), j, device=device, dtype=torch.long) if j >= 0 else None
-
-            # 调用之前定义的 ddim_sample
-            img = self.ddim_sample(img, cond, t, t_next, eta=eta, clip_denoised=self.clip_denoised)
-
-            # 保持 batch 平滑逻辑
-            if self.batch_smooth:
-                for idx in torch.arange(1, img.shape[0]):
-                    img[idx, :self.concate_length, :] = img[idx - 1, -self.concate_length:, :]
-
-        return img
 
     '''Predict Step'''
     def configure_optimizers(self):

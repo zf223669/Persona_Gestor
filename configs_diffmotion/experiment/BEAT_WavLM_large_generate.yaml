@@ -14,7 +14,7 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_dpm_solver_generate"
+task_name: "BEAT_W_L_unipc_gen"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
@@ -64,7 +64,7 @@ model:
   gesture_features: 156 # 69 65
   encoder_dim: 1280   # 1024
   learning_rate: 2.0e-4
-  sampler: "dpmsolver++" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
+  sampler: "unipc" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'/'solver-v3/'unipc'
   solver_steps: 60
   solver_order: 1
   solver_skip_type: 'time_uniform'    # 'time_uniform' or 'logSNR' or 'time_quadratic'
