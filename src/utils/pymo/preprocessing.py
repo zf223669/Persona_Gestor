@@ -1479,18 +1479,18 @@ class DownSampler(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         Q = []
-
+        index = 0
         for track in X:
+            index = index + 1
             orig_fps = round(1.0 / track.framerate)
-            print(f'Orig_fps: {orig_fps}')
+            print(f'Index: {str(index)} Orig_fps: {orig_fps}')
             rate = orig_fps // self.tgt_fps
+            # if orig_fps % self.tgt_fps != 0:
+            #     print(
+            #         "error orig_fps (" + str(index) + str(orig_fps) + ") is not dividable with tgt_fps (" + str(self.tgt_fps) + ")")
+            # else:
+            #     print("downsampling with rate: " + str(rate))
             assert orig_fps % self.tgt_fps == 0
-            if orig_fps % self.tgt_fps != 0:
-                print(
-                    "error orig_fps (" + str(orig_fps) + ") is not dividable with tgt_fps (" + str(self.tgt_fps) + ")")
-            else:
-                print("downsampling with rate: " + str(rate))
-
             # print(track.values.size)
             for ii in range(0, rate):
                 new_track = track.clone()

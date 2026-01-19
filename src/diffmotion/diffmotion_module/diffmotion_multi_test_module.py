@@ -500,7 +500,8 @@ class TrinityDiffmotionModule(LightningModule):
                     # model_kwards = {'cond':control_all}
                     model_fn = model_wrapper(model=self.model, noise_schedule=noise_Schedule, condition=control_all,
                                              model_type="noise",guidance_type='classifier-free')
-                    unipc = UniPC(model_fn=model_fn,noise_schedule=noise_Schedule,algorithm_type="noise_prediction")
+                    unipc = UniPC(model_fn=model_fn,noise_schedule=noise_Schedule,algorithm_type="noise_prediction",
+                                  thresholding_max_val=1.,dynamic_thresholding_ratio=0.5,variant='bh1')
                     device = self.betas.device
                     shape = future_samples.shape
                     img = torch.randn(shape, device=device) # 【3,400,156】

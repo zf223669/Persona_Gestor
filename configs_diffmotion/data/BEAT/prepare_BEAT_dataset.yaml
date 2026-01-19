@@ -1,18 +1,18 @@
 
 # in terminal,if you run the code from terminal, please use the following code to specify the data_dir and processed_dir
-data_dir: ./data/BEAT/Sources
-processed_dir: ./data/BEAT/processed_20s
+#data_dir: ./data/BEAT/Sources
+#processed_dir: ./data/BEAT/processed_10s
 
 # in IDE, if you run the code from IDE, please use the following code to specify the data_dir and processed_dir
-#data_dir: ../../../../data/BEAT/Sources
-#processed_dir: ../../../../data/BEAT/processed_20s_con_remover
+data_dir: ../../../../data/BEAT/Sources
+processed_dir: ../../../../data/BEAT/processed_10s
 
 # Attention: Do not modify the following parameters unless you know what you are doing.
-train_window_secs: 20
-test_window_secs: 20
+train_window_secs: 10
+test_window_secs: 10
 window_overlap: 0.5
-fps: 20     # 20 / 24
-n_mels : 20
+fps: 40     # 20 / 24
+n_mels : 203
 fullbody: True
 holdout: ['1_wayne_0_39_39', '10_kieks_0_9_9', '11_nidal_0_66_66', '12_zhao_0_88_88', '13_lu_0_9_9', '14_zhang_1_3_3', '15_carlos_0_2_2', '16_jorge_0_65_65', '17_itoi_0_111_111', '18_daiki_0_73_73', '19_jaime_0_96_96', '2_scott_0_109_109', '20_li_0_95_95', '21_ayana_0_82_82', '22_luqi_0_88_88', '23_hailing_0_10_10', '24_kexin_0_111_111', '25_goto_0_74_74', '26_reamey_0_3_3', '27_yingqing_0_9_9', '28_tiffnay_0_74_74', '29_hanieh_0_4_4', '3_solomon_0_46_46', '30_katya_0_81_81', '4_lawrence_0_5_5', '5_stewart_0_9_9', '6_carla_0_96_96', '7_sophie_0_6_6', '8_catherine_0_82_82', '9_miranda_1_12_12']
 

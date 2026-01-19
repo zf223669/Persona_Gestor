@@ -77,9 +77,9 @@ class BVHParser():
 
         self.data = MocapData()
 
-    def parse(self, filename, start=0, stop=-1):
+    def parse(self, filename, start=0, stop=-1, index = 0):
         self.reset()
-        print(f'Parse file: {filename}')
+        print(f'Parse {str(index)} file: {filename}')
         with open(filename, 'r') as bvh_file:
             raw_contents = bvh_file.read()
         tokens, remainder = self.scanner.scan(raw_contents)

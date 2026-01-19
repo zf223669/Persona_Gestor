@@ -46,10 +46,12 @@ def extract_joint_angles(bvh_dir, files, destpath, fps, fullbody=False, map_to_e
 
     data_all = list()
     print(f"Importing data... total: {len(files)}")
+    index = 0
     for f in files:
+        index = index + 1
         ff = os.path.join(bvh_dir, f + '.bvh')
         # print(ff)
-        data_all.append(p.parse(ff))
+        data_all.append(p.parse(ff, index=index))
 
     if fullbody:
         # full body
