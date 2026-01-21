@@ -76,7 +76,15 @@ class TrinityDiffmotionModule(LightningModule):
                  param_for_name="",
                  matmul_precision='high',
                  log_sync_dist=False,
-                 # profiler=None,
+                 unipc_steps=30,
+                 unipc_t_start=None,
+                 unipc_t_end=None,
+                 unipc_order=1,
+                 unipc_skip_type='time_uniform',
+                 unipc_method='multistep',
+                 unipc_lower_order_final=True,
+                 unipc_denoise_to_zero=True,
+                 unipc_return_intermediate=False
                  # endregion
                  ):
         super().__init__()
@@ -149,7 +157,15 @@ class TrinityDiffmotionModule(LightningModule):
         self.log_sync_dist = log_sync_dist
         self.process_state = "training"
         # self.profiler = profiler or PassThroughProfiler()
-
+        self.unipc_steps = unipc_steps
+        self.unipc_t_start = unipc_t_start
+        self.unipc_t_end = unipc_t_end
+        self.unipc_order = unipc_order
+        self.unipc_skip_type = unipc_skip_type
+        self.unipc_method = unipc_method
+        self.unipc_lower_order_final = unipc_lower_order_final
+        self.unipc_denoise_to_zero = unipc_denoise_to_zero
+        self.unipc_return_intermediate = unipc_return_intermediate
         # print("")
 
     # region Diffusion Block--------------------------------------------------------
@@ -505,11 +521,11 @@ class TrinityDiffmotionModule(LightningModule):
                     device = self.betas.device
                     shape = future_samples.shape
                     img = torch.randn(shape, device=device) # 【3,400,156】
-                    samples = unipc.sample(x=img,steps=40, t_start=None, t_end=None,
-                                           order=2, skip_type='time_uniform',
-                                           method='multistep', lower_order_final=True,
-                                           denoise_to_zero=True,
-                                           return_intermediate=False,)
+                    samples = unipc.sample(x=img,steps=self.unipc_steps, t_start=self.unipc_t_start, t_end=self.unipc_t_end,
+                                           order=self.unipc_order, skip_type=self.unipc_skip_type,
+                                           method=self.unipc_method, lower_order_final=self.unipc_lower_order_final,
+                                           denoise_to_zero=self.unipc_denoise_to_zero,
+                                           return_intermediate=self.unipc_return_intermediate,)
 
 
             # if use_gesture_encoder:

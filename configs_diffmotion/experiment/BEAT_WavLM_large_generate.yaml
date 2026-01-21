@@ -50,10 +50,17 @@ trainer:
 #  precision: 16  # worst
 
 profiler:
-  _target_: pytorch_lightning.profilers.SimpleProfiler
-  extended: True
+#  _target_: pytorch_lightning.profilers.SimpleProfiler
+#  extended: True
 #  dirpath: ${paths.output_dir}/
 #  filename: 'profiler'
+  _target_: pytorch_lightning.profilers.PyTorchProfiler
+  #on_trace_ready: torch.profiler.tensorboard_trace_handler("./log")
+  record_shapes: True
+  profile_memory: True
+  with_stack: True
+  dirpath: ${paths.output_dir}/
+  filename: 'profiler'
 
 model:
   param_for_name: ""
@@ -71,6 +78,15 @@ model:
   solver_skip_type: 'time_uniform'    # 'time_uniform' or 'logSNR' or 'time_quadratic'
   solver_method: 'singlestep'          # 'singlestep' or 'multistep' or 'singlestep_fixed' or 'adaptive'
   ddim_steps: 200 # 10 ~ 100 for timesteps=500
+  unipc_steps: 30
+  unipc_t_start:
+  unipc_t_end:
+  unipc_order: 1
+  unipc_skip_type: 'time_uniform'
+  unipc_method: 'multistep'
+  unipc_lower_order_final: True
+  unipc_denoise_to_zero: True
+  unipc_return_intermediate: False
   num_sequences: 1  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
   eps_theta_mod:
     _target_: src.diffmotion.diffmotion_epsilon_net.diffmotion_epsilon_theta_large.TrinityEpsilonTheta

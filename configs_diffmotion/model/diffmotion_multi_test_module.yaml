@@ -103,6 +103,15 @@ solver_steps: 5
 solver_order: 1
 solver_skip_type: 'time_uniform'    # 'time_uniform' or 'logSNR' or 'time_quadratic'
 solver_method: 'singlestep'          # 'singlestep' or 'multistep' or 'singlestep_fixed' or 'adaptive'
+unipc_steps: 30
+unipc_t_start:
+unipc_t_end:
+unipc_order: 1
+unipc_skip_type: 'time_uniform'
+unipc_method: 'multistep'
+unipc_lower_order_final: True
+unipc_denoise_to_zero: True
+unipc_return_intermediate: False
 num_sequences: 1
 
 
