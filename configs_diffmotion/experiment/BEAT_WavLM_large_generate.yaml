@@ -47,20 +47,23 @@ trainer:
 #  accumulate_grad_batches: 8
   fast_dev_run: False
 #  profiler: "simple"  # "advanced" "simple"
-#  precision: 16  # worst
+  #precision: 16-mixed  # worst
 
 profiler:
 #  _target_: pytorch_lightning.profilers.SimpleProfiler
 #  extended: True
 #  dirpath: ${paths.output_dir}/
 #  filename: 'profiler'
-  _target_: pytorch_lightning.profilers.PyTorchProfiler
-  #on_trace_ready: torch.profiler.tensorboard_trace_handler("./log")
-  record_shapes: True
-  profile_memory: True
-  with_stack: True
+  _target_: pytorch_lightning.profilers.AdvancedProfiler
   dirpath: ${paths.output_dir}/
   filename: 'profiler'
+#  _target_: pytorch_lightning.profilers.PyTorchProfiler
+#  #on_trace_ready: torch.profiler.tensorboard_trace_handler("./log")
+#  record_shapes: True
+#  profile_memory: True
+#  with_stack: True
+#  dirpath: ${paths.output_dir}/
+#  filename: 'profiler'
 
 model:
   param_for_name: ""

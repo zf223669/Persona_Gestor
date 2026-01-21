@@ -85,6 +85,7 @@ class TrinityDiffmotionModule(LightningModule):
                  unipc_lower_order_final=True,
                  unipc_denoise_to_zero=True,
                  unipc_return_intermediate=False
+
                  # endregion
                  ):
         super().__init__()
@@ -121,6 +122,7 @@ class TrinityDiffmotionModule(LightningModule):
                                linear_start=linear_start, linear_end=linear_end, cosine_s=cosine_s)
 
         self.model = eps_theta_mod  # customized model
+
         self.learning_rate = learning_rate
         self.learn_logvar = learn_logvar
         self.cond_stage_trainable = cond_stage_trainable
@@ -166,6 +168,7 @@ class TrinityDiffmotionModule(LightningModule):
         self.unipc_lower_order_final = unipc_lower_order_final
         self.unipc_denoise_to_zero = unipc_denoise_to_zero
         self.unipc_return_intermediate = unipc_return_intermediate
+        # torch._dynamo.config.disable = True
         # print("")
 
     # region Diffusion Block--------------------------------------------------------
@@ -545,6 +548,7 @@ class TrinityDiffmotionModule(LightningModule):
             log.info(f'bvh_save_name: {bvh_save_name}')
 
             # self.param_for_name += str(batch_idx)
+
             self.trainer.datamodule.save_animation(motion_data=future_samples, filename=bvh_save_name,
                                                    paramValue=self.param_for_name + str(num), test_index = dataloader_idx)
         return samples

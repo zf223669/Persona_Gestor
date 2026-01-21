@@ -249,6 +249,7 @@ class GestureDataModule(LightningDataModule):
         # )
 
     def save_animation(self, motion_data, filename, paramValue,test_index):
+
         print('-----save animation-------------')
         # print(f'motion_data shape: {motion_data.shape}')
         if self.is_inited_with_std:
