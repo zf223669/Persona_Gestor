@@ -66,6 +66,7 @@ profiler:
 #  filename: 'profiler'
 
 model:
+#  compile: True
   param_for_name: ""
   timesteps: 1000 #2000
   beta_schedule: 'linear'  # cosine / linear
@@ -76,11 +77,6 @@ model:
   encoder_dim: 1280   # 1024
   learning_rate: 2.0e-4
   sampler: "unipc" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'/'solver-v3/'unipc'
-  solver_steps: 60
-  solver_order: 1
-  solver_skip_type: 'time_uniform'    # 'time_uniform' or 'logSNR' or 'time_quadratic'
-  solver_method: 'singlestep'          # 'singlestep' or 'multistep' or 'singlestep_fixed' or 'adaptive'
-  ddim_steps: 200 # 10 ~ 100 for timesteps=500
   unipc_steps: 30
   unipc_t_start:
   unipc_t_end:
@@ -129,8 +125,8 @@ paths:
 data:
   data_root: ${paths.data_dir}/feat_20fps_20s_WithExp_waveform_WithStd
   pin_memory: True
-  batch_size: 32    # 58: 6s   28: 10s 16:15S  8:20s
-  num_workers: 32
+  batch_size: 1    # 58: 6s   28: 10s 16:15S  8:20s
+  num_workers: 23
   is_smoothing: False
   test_style: ['13_lu_0_9_9']
 

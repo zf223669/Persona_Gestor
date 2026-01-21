@@ -1,5 +1,5 @@
 _target_: src.diffmotion.diffmotion_module.diffmotion_multi_test_module.TrinityDiffmotionModule
-
+#compile: False
 given_betas:
 beta_schedule: 'linear'  # cosine / linear
 timesteps: 1000 #2000

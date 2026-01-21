@@ -32,6 +32,7 @@ log = utils.get_pylogger(__name__)
 class TrinityDiffmotionModule(LightningModule):
     def __init__(self,
                  # region init parameters
+                 # compile=False,
                  given_betas=None,
                  beta_schedule='linear',
                  timesteps=1000,
@@ -94,6 +95,7 @@ class TrinityDiffmotionModule(LightningModule):
         # self.save_hyperparameters(logger=False)
         # also ensures init params will be stored in ckpt
         torch.set_float32_matmul_precision(matmul_precision)
+
         self.batch = None
         self.n_timesteps = None
         self.n_feats = None
@@ -122,7 +124,7 @@ class TrinityDiffmotionModule(LightningModule):
                                linear_start=linear_start, linear_end=linear_end, cosine_s=cosine_s)
 
         self.model = eps_theta_mod  # customized model
-
+        # self.is_compiled = compile
         self.learning_rate = learning_rate
         self.learn_logvar = learn_logvar
         self.cond_stage_trainable = cond_stage_trainable
@@ -473,11 +475,17 @@ class TrinityDiffmotionModule(LightningModule):
     @torch.no_grad()
     def on_test_start(self) -> None:
         self.process_state = "test"
-        # log.info(f'Processing state: {self.process_state}')
+        # if self.is_compiled:
+        #     log.info("--- Compiled Model ---")
+        #     # 只编译推理用的核心网络
+        #     self.model = torch.compile(self.model)
+        # # log.info(f'Processing state: {self.process_state}')
 
     @torch.no_grad()
     def on_test_epoch_start(self) -> None:
-        log.info("on_test_epoch_start")
+        # log.info("on_test_epoch_start")
+        pass
+
 
     @torch.no_grad()
     def prepare_data_for_test(self, batch: Any, batch_idx: int, data_module=None):

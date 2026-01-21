@@ -323,53 +323,150 @@ class MocapParameterizer(BaseEstimator, TransformerMixin):
     def _expmap_to_euler(self, X):
         Q = []
         for track in tqdm(X):
-            channels = []
-            titles = []
             exp_df = track.values
+            skeleton = track.skeleton
 
-            # Create a new DataFrame to store the exponential map rep
-            # euler_df = pd.DataFrame(index=exp_df.index)
-            euler_df = exp_df.copy()
+            # 1. 预先筛选出所有需要处理的 joint，避免在循环中反复判断
+            joints = [joint for joint in skeleton if 'Nub' not in joint]
 
-            # Copy the root positions into the new DataFrame
-            # rxp = '%s_Xposition'%track.root_name
-            # ryp = '%s_Yposition'%track.root_name
-            # rzp = '%s_Zposition'%track.root_name
-            # euler_df[rxp] = pd.Series(data=exp_df[rxp], index=euler_df.index)
-            # euler_df[ryp] = pd.Series(data=exp_df[ryp], index=euler_df.index)
-            # euler_df[rzp] = pd.Series(data=exp_df[rzp], index=euler_df.index)
-
-            # List the columns that contain rotation channels
-            exp_params = [c for c in exp_df.columns if
-                          (any(p in c for p in ['alpha', 'beta', 'gamma']) and 'Nub' not in c)]
-
-            # List the joints that are not end sites, i.e., have channels
-            joints = (joint for joint in track.skeleton if 'Nub' not in joint)
+            # 2. 收集所有需要删除的旧列名和需要添加的新数据
+            cols_to_drop = []
+            new_columns_dict = {}
 
             for joint in joints:
-                r = exp_df[[c for c in exp_params if joint in c]]  # Get the columns that belong to this joint
+                # 定义列名
+                c_alpha, c_beta, c_gamma = f'{joint}_alpha', f'{joint}_beta', f'{joint}_gamma'
+                cols_to_drop.extend([c_alpha, c_beta, c_gamma])
 
-                euler_df.drop(['%s_alpha' % joint, '%s_beta' % joint, '%s_gamma' % joint], axis=1, inplace=True)
-                expmap = [[f[1]['%s_alpha' % joint], f[1]['%s_beta' % joint], f[1]['%s_gamma' % joint]] for f in
-                          r.iterrows()]  # Make sure the columsn are organized in xyz order
-                rot_order = track.skeleton[joint]['order']
-                # euler_rots = [Rotation(f, 'expmap').to_euler(True, rot_order) for f in expmap] # Convert the exp maps to eulers
-                euler_rots = [expmap2euler(f, rot_order, True) for f in expmap]  # Convert the exp maps to eulers
+                # 3. 核心优化：直接提取 NumPy 数组进行计算，避开 iterrows
+                # 假设顺序固定为 alpha, beta, gamma
+                if c_alpha in exp_df.columns:
+                    exp_data = exp_df[[c_alpha, c_beta, c_gamma]].values
+                    rot_order = skeleton[joint]['order']
 
-                # Create the corresponding columns in the new DataFrame
+                    # 4. 转换计算
+                    # 如果 expmap2euler 能够接受矩阵输入，请直接传入 exp_data
+                    # 如果不能，列表推导式处理 NumPy 数组也比 iterrows 快得多
+                    euler_rots = np.array([expmap2euler(row, rot_order, True) for row in exp_data])
 
-                euler_df['%s_%srotation' % (joint, rot_order[0])] = pd.Series(data=[e[0] for e in euler_rots],
-                                                                              index=euler_df.index)
-                euler_df['%s_%srotation' % (joint, rot_order[1])] = pd.Series(data=[e[1] for e in euler_rots],
-                                                                              index=euler_df.index)
-                euler_df['%s_%srotation' % (joint, rot_order[2])] = pd.Series(data=[e[2] for e in euler_rots],
-                                                                              index=euler_df.index)
+                    # 将结果存入字典，稍后统一合并
+                    for i in range(3):
+                        col_name = f"{joint}_{rot_order[i]}rotation"
+                        new_columns_dict[col_name] = euler_rots[:, i]
+
+            # 5. 一次性构建新 DataFrame
+            # 保留不被删除的列
+            remaining_cols = [c for c in exp_df.columns if c not in cols_to_drop]
+            euler_df = exp_df[remaining_cols].copy()
+
+            # 将新生成的旋转列一次性拼接到 DataFrame 中
+            new_cols_df = pd.DataFrame(new_columns_dict, index=exp_df.index)
+            euler_df = pd.concat([euler_df, new_cols_df], axis=1)
 
             new_track = track.clone()
             new_track.values = euler_df
             Q.append(new_track)
 
         return Q
+    # # ---------- 向量化壳 ----------
+    # def expmap2euler_batch(self,rot_mat, order, use_deg):
+    #     """
+    #     对 (n_frames, 3) 的指数映射数组逐帧调用 expmap2euler，
+    #     返回 (n_frames, 3) 的欧拉角数组。
+    #     """
+    #     return np.stack([expmap2euler(row, order, use_deg) for row in rot_mat])
+    #
+    # def _expmap_to_euler(self, X):
+    #     """
+    #     向量化版本，假设expmap2euler支持批量处理
+    #     """
+    #     Q = []
+    #
+    #     for track in tqdm(X, desc="Converting expmap to euler"):
+    #         exp_df = track.values
+    #
+    #         # 一次性找出所有旋转列
+    #         rot_cols = [c for c in exp_df.columns
+    #                     if any(p in c for p in ['alpha', 'beta', 'gamma']) and 'Nub' not in c]
+    #
+    #         # 按关节和旋转轴分组
+    #         from collections import defaultdict
+    #         joint_data = defaultdict(list)
+    #
+    #         for col in rot_cols:
+    #             parts = col.split('_')
+    #             joint = '_'.join(parts[:-1])  # 处理可能有下划线的关节名
+    #             axis = parts[-1]
+    #             joint_data[joint].append((axis, col))
+    #
+    #         # 创建结果DataFrame
+    #         euler_df = exp_df.drop(columns=rot_cols).copy()
+    #
+    #         # 批量处理每个关节
+    #         for joint, axes_cols in joint_data.items():
+    #             if joint not in track.skeleton or 'Nub' in joint:
+    #                 continue
+    #
+    #             # 按alpha, beta, gamma顺序获取列
+    #             axis_order = {'alpha': 0, 'beta': 1, 'gamma': 2}
+    #             sorted_cols = [col for _, col in sorted(axes_cols,
+    #                                                     key=lambda x: axis_order.get(x[0], 3))]
+    #
+    #             # 获取旋转数据
+    #             rot_data = exp_df[sorted_cols].values
+    #
+    #             # 获取旋转顺序
+    #             rot_order = track.skeleton[joint]['order']
+    #
+    #             # 批量转换
+    #             euler_rots = self.expmap2euler_batch(rot_data, rot_order, True)
+    #
+    #             # 添加结果列
+    #             for i, axis in enumerate(rot_order):
+    #                 euler_df[f'{joint}_{axis}rotation'] = euler_rots[:, i]
+    #
+    #         new_track = track.clone()
+    #         new_track.values = euler_df
+    #         Q.append(new_track)
+    #
+    #     return Q
+    # def _expmap_to_euler(self, X):
+    #     Q = []
+    #     for track in tqdm(X):
+    #         exp_df = track.values
+    #
+    #         euler_df = exp_df.copy()
+    #
+    #         # List the columns that contain rotation channels
+    #         exp_params = [c for c in exp_df.columns if
+    #                       (any(p in c for p in ['alpha', 'beta', 'gamma']) and 'Nub' not in c)]
+    #
+    #         # List the joints that are not end sites, i.e., have channels
+    #         joints = (joint for joint in track.skeleton if 'Nub' not in joint)
+    #
+    #         for joint in joints:
+    #             r = exp_df[[c for c in exp_params if joint in c]]  # Get the columns that belong to this joint
+    #
+    #             euler_df.drop(['%s_alpha' % joint, '%s_beta' % joint, '%s_gamma' % joint], axis=1, inplace=True)
+    #             expmap = [[f[1]['%s_alpha' % joint], f[1]['%s_beta' % joint], f[1]['%s_gamma' % joint]] for f in
+    #                       r.iterrows()]  # Make sure the columsn are organized in xyz order
+    #             rot_order = track.skeleton[joint]['order']
+    #             euler_rots = [expmap2euler(f, rot_order, True) for f in expmap]  # Convert the exp maps to eulers
+    #
+    #             # Create the corresponding columns in the new DataFrame
+    #
+    #             euler_df['%s_%srotation' % (joint, rot_order[0])] = pd.Series(data=[e[0] for e in euler_rots],
+    #                                                                           index=euler_df.index)
+    #             euler_df['%s_%srotation' % (joint, rot_order[1])] = pd.Series(data=[e[1] for e in euler_rots],
+    #                                                                           index=euler_df.index)
+    #             euler_df['%s_%srotation' % (joint, rot_order[2])] = pd.Series(data=[e[2] for e in euler_rots],
+    #                                                                           index=euler_df.index)
+    #
+    #         new_track = track.clone()
+    #         new_track.values = euler_df
+    #         Q.append(new_track)
+    #
+    #     return Q
 
 
 class Mirror(BaseEstimator, TransformerMixin):
