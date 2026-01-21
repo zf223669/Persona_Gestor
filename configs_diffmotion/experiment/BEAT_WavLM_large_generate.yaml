@@ -25,6 +25,7 @@ ckpt_path: /home/zf/Persona_Gestor/ckpt_path/BEAT_WavLM_large_079.ckpt
 seed: null
 train: False
 test: True
+compile: False
 
 logger:
   wandb:  # we use wandb for logging, please find instructions to set it up from https://docs.wandb.ai/quickstart, if you want to use wandb or other loggers, please set parameter: - override /logger:
