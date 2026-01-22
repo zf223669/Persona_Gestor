@@ -526,27 +526,49 @@ class TrinityDiffmotionModule(LightningModule):
                     device = self.betas.device
                     shape = future_samples.shape
                     img = torch.randn(shape, device=device) # 【3,400,156】
-                    samples = unipc.sample(x=img,steps=self.unipc_steps, t_start=self.unipc_t_start, t_end=self.unipc_t_end,
-                                           order=self.unipc_order, skip_type=self.unipc_skip_type,
-                                           method=self.unipc_method, lower_order_final=self.unipc_lower_order_final,
-                                           denoise_to_zero=self.unipc_denoise_to_zero,
-                                           return_intermediate=self.unipc_return_intermediate,)
+                    if self.unipc_return_intermediate:
+                        samples,intermediates = unipc.sample(x=img,steps=self.unipc_steps, t_start=self.unipc_t_start, t_end=self.unipc_t_end,
+                                               order=self.unipc_order, skip_type=self.unipc_skip_type,
+                                               method=self.unipc_method, lower_order_final=self.unipc_lower_order_final,
+                                               denoise_to_zero=self.unipc_denoise_to_zero,
+                                               return_intermediate=self.unipc_return_intermediate,)
+                    else:
+                        samples = unipc.sample(x=img, steps=self.unipc_steps, t_start=self.unipc_t_start,
+                                                              t_end=self.unipc_t_end,
+                                                              order=self.unipc_order, skip_type=self.unipc_skip_type,
+                                                              method=self.unipc_method,
+                                                              lower_order_final=self.unipc_lower_order_final,
+                                                              denoise_to_zero=self.unipc_denoise_to_zero,
+                                                              return_intermediate=self.unipc_return_intermediate, )
 
             end_time = time.perf_counter()
             execution_time = end_time - start_time
             self.log(f'Seq_{num}_Generate_time', execution_time)
             future_samples = samples.cpu().numpy().copy()
-
             bvh_save_name = os.path.join(self.bvh_save_path, self.bvh_save_file)
             extract_parameters = utils.extract_characters(self.bvh_save_path)
             for parameter in extract_parameters:
                 if '.yaml' not in parameter and '.ckpt' not in parameter:
                     bvh_save_name = bvh_save_name + "_" + parameter
-            log.info(f'bvh_save_name: {bvh_save_name}')
-
-
+            # log.info(f'bvh_save_name: {bvh_save_name}')
             self.trainer.datamodule.save_animation(motion_data=future_samples, filename=bvh_save_name,
                                                    paramValue=self.param_for_name + str(num), test_index = dataloader_idx)
+
+            # 处理uniPC的intermediates并保存为BVH文件
+            if self.unipc_return_intermediate:
+                for idx, intermediate in enumerate(intermediates):
+                    log.info(f'Saving intermediate_{idx}_sameples!')
+                    intermediate_samples = intermediate.cpu().numpy().copy()
+                    bvh_save_name_intermediate = os.path.join(self.bvh_save_path,
+                                                              f"{self.bvh_save_file}_intermediate_unipc_t_{idx}")
+
+                    # 保存中间结果为BVH文件
+                    self.trainer.datamodule.save_animation(
+                        motion_data=intermediate_samples,
+                        filename=bvh_save_name_intermediate,
+                        paramValue="",
+                        test_index=dataloader_idx
+                    )
         return samples
 
 

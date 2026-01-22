@@ -368,68 +368,7 @@ class MocapParameterizer(BaseEstimator, TransformerMixin):
             Q.append(new_track)
 
         return Q
-    # # ---------- 向量化壳 ----------
-    # def expmap2euler_batch(self,rot_mat, order, use_deg):
-    #     """
-    #     对 (n_frames, 3) 的指数映射数组逐帧调用 expmap2euler，
-    #     返回 (n_frames, 3) 的欧拉角数组。
-    #     """
-    #     return np.stack([expmap2euler(row, order, use_deg) for row in rot_mat])
-    #
-    # def _expmap_to_euler(self, X):
-    #     """
-    #     向量化版本，假设expmap2euler支持批量处理
-    #     """
-    #     Q = []
-    #
-    #     for track in tqdm(X, desc="Converting expmap to euler"):
-    #         exp_df = track.values
-    #
-    #         # 一次性找出所有旋转列
-    #         rot_cols = [c for c in exp_df.columns
-    #                     if any(p in c for p in ['alpha', 'beta', 'gamma']) and 'Nub' not in c]
-    #
-    #         # 按关节和旋转轴分组
-    #         from collections import defaultdict
-    #         joint_data = defaultdict(list)
-    #
-    #         for col in rot_cols:
-    #             parts = col.split('_')
-    #             joint = '_'.join(parts[:-1])  # 处理可能有下划线的关节名
-    #             axis = parts[-1]
-    #             joint_data[joint].append((axis, col))
-    #
-    #         # 创建结果DataFrame
-    #         euler_df = exp_df.drop(columns=rot_cols).copy()
-    #
-    #         # 批量处理每个关节
-    #         for joint, axes_cols in joint_data.items():
-    #             if joint not in track.skeleton or 'Nub' in joint:
-    #                 continue
-    #
-    #             # 按alpha, beta, gamma顺序获取列
-    #             axis_order = {'alpha': 0, 'beta': 1, 'gamma': 2}
-    #             sorted_cols = [col for _, col in sorted(axes_cols,
-    #                                                     key=lambda x: axis_order.get(x[0], 3))]
-    #
-    #             # 获取旋转数据
-    #             rot_data = exp_df[sorted_cols].values
-    #
-    #             # 获取旋转顺序
-    #             rot_order = track.skeleton[joint]['order']
-    #
-    #             # 批量转换
-    #             euler_rots = self.expmap2euler_batch(rot_data, rot_order, True)
-    #
-    #             # 添加结果列
-    #             for i, axis in enumerate(rot_order):
-    #                 euler_df[f'{joint}_{axis}rotation'] = euler_rots[:, i]
-    #
-    #         new_track = track.clone()
-    #         new_track.values = euler_df
-    #         Q.append(new_track)
-    #
-    #     return Q
+
     # def _expmap_to_euler(self, X):
     #     Q = []
     #     for track in tqdm(X):

@@ -104,8 +104,8 @@ class GestureDataModule(LightningDataModule):
             self.is_waveform = True
         else:
             self.is_waveform = False
-        log.info(f'Is using scaler: {self.is_inited_with_std}----------')
-        log.info(f'Data root path: {self.data_root}--------------------')
+        # log.info(f'Is using scaler: {self.is_inited_with_std}----------')
+        # log.info(f'Data root path: {self.data_root}--------------------')
 
     def prepare_data(self):
         log.info('-----------------prepare_data: Load data-----------------')
@@ -233,51 +233,35 @@ class GestureDataModule(LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             shuffle=False,
-            # persistent_workers=True,
+            persistent_workers=True,
             drop_last=False
         )  for dataset in self.test_datasets]
         return test_loaders
-        # return DataLoader(
-        #     self.test_dataset,
-        #     batch_size=self.test_input.shape[0],
-        #     # batch_size=self.batch_size,
-        #     num_workers=self.num_workers,
-        #     pin_memory=self.pin_memory,
-        #     shuffle=False,
-        #     # persistent_workers=True,
-        #     drop_last=False
-        # )
+
 
     def save_animation(self, motion_data, filename, paramValue,test_index):
 
-        print('-----save animation-------------')
+        #print('-----save animation-------------')
         # print(f'motion_data shape: {motion_data.shape}')
         if self.is_inited_with_std:
             anim_clips = inv_standardize(motion_data[:, :, :], self.output_scaler)
         else:
             anim_clips = motion_data[:, :, :]
-        # if self.is_inited_with_std:
-        #     anim_clips = inv_standardize(motion_data[:self.n_test, :, :], self.output_scaler)
-        # else:
-        #     anim_clips = motion_data[:self.n_test, :, :]
-        log.info("saving generated gestures...")
+
+        #log.info("saving generated gestures...")
         if self.save_np:
             np.savez(filename + "_without_smooth.npz", clips=anim_clips)
         # self.write_full_bvh(anim_clips, filename + "_no_sm", paramValue)
         self.write_full_bvh(anim_clips, filename, paramValue,test_index)
 
         if self.is_smoothing:
-            log.info("Smoothing generated gestures...")
+            #log.info("Smoothing generated gestures...")
             smooth_anim_clips = savgol_filter(anim_clips, window_length=self.window_length,
                                               polyorder=self.polyorder, mode='nearest', axis=1)
             if self.save_np:
                 np.savez(filename + "_with_smooth.npz", clips=smooth_anim_clips)
-            # self.write_bvh(smooth_anim_clips, filename+self.is_with_transcript, paramValue)
             self.write_full_bvh(smooth_anim_clips, filename + "_sm",
                                 paramValue)
-        # else:
-
-        # self.write_bvh(anim_clips, filename+self.is_with_transcript,paramValue)
 
     def write_bvh(self, anim_clips, filename, paramValue):
         print('inverse_transform...')
