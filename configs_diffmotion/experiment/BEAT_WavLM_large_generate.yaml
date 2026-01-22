@@ -91,7 +91,6 @@ model:
     _target_: src.diffmotion.diffmotion_epsilon_net.diffmotion_epsilon_theta_large.TrinityEpsilonTheta
     atten_sel: 'conformer'          # conformer 'informer', 'full_transformer'
     mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
-    informer_factor: 5
     upper_offset: 10
     lower_offset: -10
 #    re_weight_m: 1

@@ -22,7 +22,6 @@ from typing import Optional
 from .embedding import PositionalEncoding
 from .modules import Linear
 import src.diffmotion.components.mask.mask as mask_strategy
-from ..Informer.attn import AttentionLayer, ProbAttention
 from torch.nn.parameter import Parameter
 
 
@@ -208,8 +207,7 @@ class MultiHeadedSelfAttentionModule(nn.Module):
     def __init__(self, d_model: int, num_heads: int, dropout_p: float = 0.1, mask_selection: str = 'causalMask',
                  dman_max_len=200,
                  position_embedding_type: str = 'Transformer_FX', causal_mask_diagonal: int = 0,
-                 upper_offset: int = 20, lower_offset: int = -20, atten_sel: str = 'conformer',
-                 dman_mask: str = 'no_mask', dman_position=False, inf_pos=False, informer_factor=5, use_DropKey=False,
+                 upper_offset: int = 20, lower_offset: int = -20, atten_sel: str = 'conformer', use_DropKey=False,
                     mask_ratio=0.3,):
         super(MultiHeadedSelfAttentionModule, self).__init__()
         self.pos_embedding = None
@@ -225,11 +223,6 @@ class MultiHeadedSelfAttentionModule(nn.Module):
                                                         use_DropKey=use_DropKey,
                                                         mask_ratio=mask_ratio,
                                                         )
-        elif self.atten_sel == "informer":  # don`t need position embedding
-            self.attention = AttentionLayer(
-                ProbAttention(mask_flag=True, factor=informer_factor, attention_dropout=dropout_p,
-                              output_attention=False),
-                d_model, n_heads=num_heads, )
         self.dropout = nn.Dropout(p=dropout_p)
         self.mask_selection = mask_selection
         self.position_embedding = position_embedding_type
@@ -237,32 +230,28 @@ class MultiHeadedSelfAttentionModule(nn.Module):
         self.causal_mask_diagonal = causal_mask_diagonal
         self.upper_offset = upper_offset
         self.lower_offset = lower_offset
-        # print(f'atten_sel: {self.atten_sel} + inf_pos: {self.inf_pos} --------------------------------')
-        # if self.mask_selection == 'dman' and self.atten_sel != 'informer':
-        #     self.mask = mask_strategy.DMAN(max_len=dman_max_len, embed_dim=d_model, num_heads=num_heads)
 
     def forward(self, inputs: Tensor, mask: Optional[Tensor] = None):
         batch_size, seq_length, _ = inputs.size()
 
         self.pos_embedding = self.positional_encoding(seq_length)
         self.pos_embedding = self.pos_embedding.repeat(batch_size, 1, 1)
-        if self.atten_sel != 'informer':  # mask for conformer
-            if self.mask is None:
-                if self.mask_selection == 'causalMask':
-                    self.mask = mask_strategy.causal_mask(batch_size, seq_length, self.causal_mask_diagonal)
-                elif self.mask_selection == 'diagonal_matrix':
-                    print(f'upper_offset: {self.upper_offset}, lower_offset: {self.lower_offset}......')
-                    self.mask = mask_strategy.upper_lower_diagonal_mask(batch_size, seq_length, self.upper_offset,
-                                                                        self.lower_offset)
-                elif self.mask_selection == 'no_mask':
-                    self.mask = None
-            if self.mask is not None and self.mask_selection != 'dman':
-                if self.mask.shape[0] != batch_size:
-                    self.mask = self.mask[0].unsqueeze(0).repeat(batch_size, 1, 1)
+
+        if self.mask is None:
+            if self.mask_selection == 'causalMask':
+                self.mask = mask_strategy.causal_mask(batch_size, seq_length, self.causal_mask_diagonal)
+            elif self.mask_selection == 'diagonal_matrix':
+                print(f'upper_offset: {self.upper_offset}, lower_offset: {self.lower_offset}......')
+                self.mask = mask_strategy.upper_lower_diagonal_mask(batch_size, seq_length, self.upper_offset,
+                                                                    self.lower_offset)
+            elif self.mask_selection == 'no_mask':
+                self.mask = None
+        if self.mask is not None and self.mask_selection != 'dman':
+            if self.mask.shape[0] != batch_size:
+                self.mask = self.mask[0].unsqueeze(0).repeat(batch_size, 1, 1)
 
         inputs = self.layer_norm(inputs)
         if self.mask_selection != 'dman':
             outputs = self.attention(inputs, inputs, inputs, pos_embedding=self.pos_embedding, mask=self.mask)
 
         return self.dropout(outputs)
-

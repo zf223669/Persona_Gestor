@@ -34,7 +34,6 @@ class ConformerBlock(nn.Module):
                  upper_offset: int = 20,
                  lower_offset: int = -20,
                  atten_sel: str = 'conformer',
-                 informer_factor: int = 5,
                  use_DropKey: bool = False,
                  mask_ratio: float = 0.3,
                  **block_kwargs):
@@ -62,7 +61,6 @@ class ConformerBlock(nn.Module):
                     upper_offset=self.upper_offset,  # for diagonal mask
                     lower_offset=self.lower_offset,
                     atten_sel=self.atten_sel,
-                    informer_factor=informer_factor,
                     use_DropKey=self.use_DropKey,
                     mask_ratio=self.mask_ratio,
                 ),

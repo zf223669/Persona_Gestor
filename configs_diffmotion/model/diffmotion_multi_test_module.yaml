@@ -21,9 +21,8 @@ eps_theta_mod:
   encoder_dim: ${model.encoder_dim}
   target_dim: ${model.gesture_features}
   time_emb_dim: ${model.eps_theta_mod.encoder_dim}
-  atten_sel: 'informer'     # conformer 'informer', 'full_transformer'
-  mask_sel: 'dman'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
-  informer_factor: 5
+  atten_sel: 'conformer'     # conformer 'informer', 'full_transformer'
+  mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
 #  re_weight_m: 1              # 1 = dman
   separate_wavlm: False     # True for using  all different layer result of wavlm encoder, False for one layer with walm_layer
   wavlm_layer: 12           # 0 ~ 12
