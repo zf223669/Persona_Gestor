@@ -218,18 +218,13 @@ class MultiHeadedSelfAttentionModule(nn.Module):
         self.atten_sel = atten_sel
         self.num_heads = num_heads
         if self.atten_sel == "conformer":
-            if mask_selection != 'dman':
-                self.attention = RelativeMultiHeadAttention(d_model, num_heads, dropout_p,
-                                                            mask_selection=mask_selection,
-                                                            position_embedding_type=position_embedding_type,
-                                                            dman_max_len=dman_max_len,
-                                                            use_DropKey=use_DropKey,
-                                                            mask_ratio=mask_ratio,
-                                                            )
-            elif mask_selection == 'dman':
-                from src.diffmotion.components.conformer.DMAN_attention import DMAN_attention
-                self.attention = DMAN_attention(d_model, num_heads, dropout=0., bias=True, add_bias_kv=False,
-                                                add_zero_attn=False, re_weight_m=1, max_len=dman_max_len,self_attention=True)
+            self.attention = RelativeMultiHeadAttention(d_model, num_heads, dropout_p,
+                                                        mask_selection=mask_selection,
+                                                        position_embedding_type=position_embedding_type,
+                                                        dman_max_len=dman_max_len,
+                                                        use_DropKey=use_DropKey,
+                                                        mask_ratio=mask_ratio,
+                                                        )
         elif self.atten_sel == "informer":  # don`t need position embedding
             self.attention = AttentionLayer(
                 ProbAttention(mask_flag=True, factor=informer_factor, attention_dropout=dropout_p,
@@ -242,9 +237,6 @@ class MultiHeadedSelfAttentionModule(nn.Module):
         self.causal_mask_diagonal = causal_mask_diagonal
         self.upper_offset = upper_offset
         self.lower_offset = lower_offset
-        self.dman_mask = dman_mask
-        self.dman_position = dman_position
-        self.inf_pos = inf_pos
         # print(f'atten_sel: {self.atten_sel} + inf_pos: {self.inf_pos} --------------------------------')
         # if self.mask_selection == 'dman' and self.atten_sel != 'informer':
         #     self.mask = mask_strategy.DMAN(max_len=dman_max_len, embed_dim=d_model, num_heads=num_heads)
@@ -262,44 +254,15 @@ class MultiHeadedSelfAttentionModule(nn.Module):
                     print(f'upper_offset: {self.upper_offset}, lower_offset: {self.lower_offset}......')
                     self.mask = mask_strategy.upper_lower_diagonal_mask(batch_size, seq_length, self.upper_offset,
                                                                         self.lower_offset)
-                # elif self.mask_selection == "dman":
-                #     self.mask = self.DMAN_module(context=inputs, key_len=seq_length, bsz=batch_size)    # context = query
                 elif self.mask_selection == 'no_mask':
                     self.mask = None
-            # if self.mask_selection == "dman":
-            #     self.mask = self.DMAN_module(context=inputs, key_len=seq_length, bsz=batch_size)  # context = query
             if self.mask is not None and self.mask_selection != 'dman':
                 if self.mask.shape[0] != batch_size:
                     self.mask = self.mask[0].unsqueeze(0).repeat(batch_size, 1, 1)
 
         inputs = self.layer_norm(inputs)
         if self.mask_selection != 'dman':
-            # if self.atten_sel == 'informer' and self.inf_pos is True:  ##############
-            #     inputs += self.pos_embedding                            ##############
             outputs = self.attention(inputs, inputs, inputs, pos_embedding=self.pos_embedding, mask=self.mask)
 
-
-        ####################   DMAN   ###################################################################
-        elif self.mask_selection == 'dman':
-            # if self.dman_position:
-            #     inputs = inputs + self.pos_embedding
-            inputs = inputs.transpose(0, 1)
-            # self.mask = mask_strategy.causal_mask(1, seq_length, self.causal_mask_diagonal).squeeze(0)
-            if self.mask is None:
-
-                if self.dman_mask == 'no_mask':
-                    # print(f'DMAN mask is {self.dman_mask}---------------------------------------------')
-                    self.mask = None
-                elif self.dman_mask == 'diagonal_matrix':
-                    # print(f'DMAN mask is {self.dman_mask}---------------------------------------------')
-                    self.mask = mask_strategy.upper_lower_diagonal_mask(1, seq_length, self.upper_offset,
-                                                                        self.lower_offset).squeeze(0)
-                elif self.dman_mask == 'causalMask':
-                    # print(f'DMAN mask is {self.dman_mask}---------------------------------------------')
-                    self.mask = mask_strategy.causal_mask(1, seq_length, self.causal_mask_diagonal).squeeze(0)
-
-            outputs, _ = self.attention(inputs, inputs, inputs, key_padding_mask=None, incremental_state=None,
-                                        need_weights=False, static_kv=False, attn_mask=self.mask)
-            outputs = outputs.transpose(0, 1)
-
         return self.dropout(outputs)
+

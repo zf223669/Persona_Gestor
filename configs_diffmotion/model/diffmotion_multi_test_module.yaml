@@ -23,10 +23,6 @@ eps_theta_mod:
   time_emb_dim: ${model.eps_theta_mod.encoder_dim}
   atten_sel: 'informer'     # conformer 'informer', 'full_transformer'
   mask_sel: 'dman'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
-  dman_mask: 'no_mask'
-  dman_position: False
-  dman_max_len: 400          # max_seq_len 100 200
-  inf_pos: False
   informer_factor: 5
 #  re_weight_m: 1              # 1 = dman
   separate_wavlm: False     # True for using  all different layer result of wavlm encoder, False for one layer with walm_layer

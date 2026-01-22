@@ -515,12 +515,6 @@ class TrinityDiffmotionModule(LightningModule):
                                           shape=future_samples.shape,
                                           # batch_size=control_all.shape[0],
                                           return_intermediates=False)
-                elif self.sampler == "DDIM":
-                    pass # TODO
-                elif self.sampler in ['dpmsolver', 'dpmsolver++']:
-                    pass # TODO
-                elif self.sampler == "solver-v3":
-                    pass # TODO
                 elif self.sampler == "unipc":
                     from src.utils.uni_pc import NoiseScheduleVP,model_wrapper,UniPC
                     noise_Schedule = NoiseScheduleVP(schedule='discrete',alphas_cumprod=self.alphas_cumprod)
@@ -538,15 +532,10 @@ class TrinityDiffmotionModule(LightningModule):
                                            denoise_to_zero=self.unipc_denoise_to_zero,
                                            return_intermediate=self.unipc_return_intermediate,)
 
-
-            # if use_gesture_encoder:
-            #    future_samples = Decoder(future_samples)
             end_time = time.perf_counter()
             execution_time = end_time - start_time
             self.log(f'Seq_{num}_Generate_time', execution_time)
-            # log.info(f'Seq_{num}_Generate_time', execution_time)
             future_samples = samples.cpu().numpy().copy()
-            # path = os.path.dirname(self.bvh_save_path)
 
             bvh_save_name = os.path.join(self.bvh_save_path, self.bvh_save_file)
             extract_parameters = utils.extract_characters(self.bvh_save_path)
@@ -555,7 +544,6 @@ class TrinityDiffmotionModule(LightningModule):
                     bvh_save_name = bvh_save_name + "_" + parameter
             log.info(f'bvh_save_name: {bvh_save_name}')
 
-            # self.param_for_name += str(batch_idx)
 
             self.trainer.datamodule.save_animation(motion_data=future_samples, filename=bvh_save_name,
                                                    paramValue=self.param_for_name + str(num), test_index = dataloader_idx)

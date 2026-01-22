@@ -102,10 +102,6 @@ class TrinityEpsilonTheta(nn.Module):
                  time_emb_dim: int = 512,
                  atten_sel: str = 'conformer',  # 'informer', 'full_transformer'
                  mask_sel: str = 'causalMask',  # 'tridiagonal_matrix', 'no_mask'
-                 dman_mask: str = 'no_mask',
-                 dman_position: bool = False,
-                 inf_pos: bool = False,
-                 dman_max_len: int = 10,
                  separate_wavlm: bool = False,
                  wavlm_layer: int = 12,
                  causal_mask_diagonal: int = 0,
@@ -146,7 +142,6 @@ class TrinityEpsilonTheta(nn.Module):
         self.motion_decoder = motion_decoder
         self.separate_wavlm = separate_wavlm
         self.wavlm_layer = wavlm_layer
-        self.inf_pos = inf_pos
         self.style_encode = style_encode
         self.use_DropKey = use_DropKey
         self.mask_ratio = mask_ratio
@@ -203,16 +198,12 @@ class TrinityEpsilonTheta(nn.Module):
                                               feed_forward_expansion_factor=feed_forward_expansion_factor,
                                               feed_forward_dropout_p=feed_forward_dropout_p,
                                               mask_selection=mask_sel,
-                                              dman_max_len=dman_max_len,
                                               position_embedding_type=position_embedding_type,
                                               condition_strategy=condition_strategy,
                                               causal_mask_diagonal=causal_mask_diagonal,
                                               upper_offset=upper_offset,
                                               lower_offset=lower_offset,
                                               atten_sel=self.atten_sel,
-                                              dman_mask=dman_mask,
-                                              dman_position=dman_position,
-                                              inf_pos=inf_pos,
                                               informer_factor=informer_factor,
                                               use_DropKey=self.use_DropKey,
                                               mask_ratio=self.mask_ratio,

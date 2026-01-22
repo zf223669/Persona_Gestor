@@ -14,7 +14,7 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_unipc_gen"
+task_name: "BEAT_W_L_clean_up"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
@@ -76,7 +76,7 @@ model:
   gesture_features: 156 # 69 65
   encoder_dim: 1280   # 1024
   learning_rate: 2.0e-4
-  sampler: "unipc" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'/'solver-v3/'unipc'
+  sampler: "unipc" #''DDPM'/'unipc'
   unipc_steps: 30
   unipc_t_start:
   unipc_t_end:
@@ -90,12 +90,7 @@ model:
   eps_theta_mod:
     _target_: src.diffmotion.diffmotion_epsilon_net.diffmotion_epsilon_theta_large.TrinityEpsilonTheta
     atten_sel: 'conformer'          # conformer 'informer', 'full_transformer'
-
     mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
-    dman_mask: 'no_mask'
-    dman_max_len: 400               # max_seq_len 120, 100 200 300 400
-    dman_position: False
-    inf_pos: False
     informer_factor: 5
     upper_offset: 10
     lower_offset: -10
