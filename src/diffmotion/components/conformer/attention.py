@@ -246,12 +246,12 @@ class MultiHeadedSelfAttentionModule(nn.Module):
                                                                     self.lower_offset)
             elif self.mask_selection == 'no_mask':
                 self.mask = None
-        if self.mask is not None and self.mask_selection != 'dman':
+        if self.mask is not None:
             if self.mask.shape[0] != batch_size:
                 self.mask = self.mask[0].unsqueeze(0).repeat(batch_size, 1, 1)
 
         inputs = self.layer_norm(inputs)
-        if self.mask_selection != 'dman':
-            outputs = self.attention(inputs, inputs, inputs, pos_embedding=self.pos_embedding, mask=self.mask)
+
+        outputs = self.attention(inputs, inputs, inputs, pos_embedding=self.pos_embedding, mask=self.mask)
 
         return self.dropout(outputs)
