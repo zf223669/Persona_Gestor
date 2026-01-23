@@ -77,7 +77,7 @@ model:
   encoder_dim: 1280   # 1024
   learning_rate: 2.0e-4
   sampler: "unipc" #''DDPM'/'unipc'
-  unipc_steps: 32   # 32 best
+  unipc_steps: 32   # 32 best but the hip position accumulate error
   unipc_t_start:
   unipc_t_end:
   unipc_order: 1
