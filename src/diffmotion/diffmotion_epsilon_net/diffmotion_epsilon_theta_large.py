@@ -149,9 +149,10 @@ class TrinityEpsilonTheta(nn.Module):
             if not conv_depthwise:
                 self.style_encoder = nn.Sequential(
                     Transpose(shape=(1, 2)),
-                    nn.Conv1d(in_channels=1024, out_channels=1024, kernel_size=500, stride=1, dilation=2),
+                    # nn.Conv1d(in_channels=1024, out_channels=1024, kernel_size=500, stride=1, dilation=2),
+                    nn.Conv1d(in_channels=1024, out_channels=1024, kernel_size=499, stride=1, dilation=1, padding=0),
 
-                    Transpose(shape=(1, 2)),
+                Transpose(shape=(1, 2)),
                     nn.LayerNorm(1024),
                 )  # the numbers of parameters in Conv1D
             elif conv_depthwise:
@@ -161,7 +162,7 @@ class TrinityEpsilonTheta(nn.Module):
                     Transpose(shape=(1, 2)),
                     PointwiseConv1d(1024, 1024 * 2, stride=1, padding=0, bias=True),
                     GLU(dim=1),
-                    DepthwiseConv1d(1024, 1024, 999, stride=1, padding=0, bias=False),
+                    DepthwiseConv1d(1024, 1024, 499, stride=1, padding=0, bias=False),
                     nn.BatchNorm1d(1024),
                     Swish(),
                     PointwiseConv1d(1024, 1024, stride=1, padding=0, bias=True),
@@ -173,9 +174,11 @@ class TrinityEpsilonTheta(nn.Module):
         self.down_sampler = nn.Sequential(
             Transpose(shape=(1, 2)),
             # for base wavlm model
-            nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=201, stride=2, dilation=1),  # 20s
+            # nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=201, stride=2, dilation=1),  # 20s
             # nn.Conv1d(in_channels=768, out_channels=encoder_dim, kernel_size=41, stride=2, dilation=1),                 # 20s 24fps
-            # 60 = d * (k - 1)
+            nn.Conv1d(in_channels=1024, out_channels=encoder_dim, kernel_size=100, stride=1, dilation=1),   # 10s 40fps
+
+        # 60 = d * (k - 1)
             Transpose(shape=(1, 2)),
             nn.LayerNorm(encoder_dim),
             nn.LeakyReLU(0.2, True),
@@ -236,7 +239,7 @@ class TrinityEpsilonTheta(nn.Module):
         x = self.motion_encoder(inputs)  # [64,58,512]
         # if processing_state == 'training' or processing_state == 'validation' or (
         #         processing_state == 'test' and (last_time_stamp in time)):
-        if self.wav_encode is None:
+        if processing_state == 'training' or processing_state == 'validation' or self.wav_encode is None:
             # log.info("wavLM_Encoding!!!!!!!!!!!!!!!!!!!!!!!!!!")
             self.wav_encode = self.WavLM_Encoder(cond=cond, style_encode=self.style_encode)
         c = t + self.wav_encode

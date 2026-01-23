@@ -283,4 +283,4 @@ class GestureDataModule(LightningDataModule):
         writer = BVHWriter()
         filename_ = f'{filename}_{self.test_style[test_index]}{paramValue}.bvh'
         with open(filename_, 'w') as f:
-            writer.write(inv_data[0], f, framerate=20)
+            writer.write(inv_data[0], f, framerate=40)

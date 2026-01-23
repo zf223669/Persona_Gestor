@@ -54,7 +54,7 @@ class TrinityDiffmotionModule(LightningModule):
                  l_simple_weight=1.,
                  original_elbo_weight=0.,
                  scheduler_config=None,
-                 use_ema=True,
+                 use_ema=False,
                  init_by_mean_pose=False,
                  num_parallel_samples=1,
                  image_size=1,
@@ -450,8 +450,9 @@ class TrinityDiffmotionModule(LightningModule):
         pass
 
     def on_train_batch_end(self, *args, **kwargs):
-        if self.use_ema:
-            self.model_ema(self)
+        pass
+        # if self.use_ema:
+        #     self.model_ema(self)
 
     '''Validataion Step'''
 
@@ -464,11 +465,11 @@ class TrinityDiffmotionModule(LightningModule):
         loss, loss_dict_no_ema = self.model_step(batch)
         with self.ema_scope():
             loss, loss_dict_ema = self.model_step(batch)
-            loss_dict_ema = {key + '_ema': loss_dict_ema[key] for key in loss_dict_ema}
+            # loss_dict_ema = {key + '_ema': loss_dict_ema[key] for key in loss_dict_ema}
         self.log_dict(loss_dict_no_ema, prog_bar=True, logger=True, on_step=False, on_epoch=True,
                       sync_dist=self.log_sync_dist)
-        self.log_dict(loss_dict_ema, prog_bar=True, logger=True, on_step=False, on_epoch=True,
-                      sync_dist=self.log_sync_dist)
+        # self.log_dict(loss_dict_ema, prog_bar=True, logger=True, on_step=False, on_epoch=True,
+        #               sync_dist=self.log_sync_dist)
 
     '''Test Step'''
 
