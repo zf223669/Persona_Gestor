@@ -18,11 +18,42 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 from typing import Optional
+from typing import Tuple
 
 from .embedding import PositionalEncoding
 from .modules import Linear
 import src.diffmotion.components.mask.mask as mask_strategy
 from torch.nn.parameter import Parameter
+def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
+    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim))
+    t = torch.arange(end, device=freqs.device, dtype=torch.float32)
+    freqs = torch.outer(t, freqs)
+    freqs_cis = torch.polar(torch.ones_like(freqs), freqs)  # complex64
+    return freqs_cis
+
+
+def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
+    ndim = x.ndim
+    assert 0 <= 1 < ndim
+    assert freqs_cis.shape == (x.shape[1], x.shape[-1])
+    shape = [d if i == 1 or i == ndim - 1 else 1 for i, d in enumerate(x.shape)]
+    return freqs_cis.view(*shape)
+
+
+def apply_rotary_emb(
+    xq: torch.Tensor,
+    xk: torch.Tensor,
+    freqs_cis: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    xq_ = torch.view_as_complex(xq.float().reshape(*xq.shape[:-1], -1, 2))  # [B,seqlen,num_head,40]
+    xk_ = torch.view_as_complex(xk.float().reshape(*xk.shape[:-1], -1, 2))  # [B,seqlen,num_head,40]
+    device = xq.device
+    freqs_cis = freqs_cis.to(device)
+    freqs_cis = reshape_for_broadcast(freqs_cis, xq_)
+    xq_out = torch.view_as_real(xq_ * freqs_cis).flatten(3)
+    xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
+    return xq_out.type_as(xq), xk_out.type_as(xk)
+
 
 
 class RelativeMultiHeadAttention(nn.Module):
@@ -46,55 +77,6 @@ class RelativeMultiHeadAttention(nn.Module):
         - **outputs**: Tensor produces by relative multi head attention module.
     """
 
-    # def build_mask(self, **kw):
-    #     assert 'context' in kw and 'key_len' in kw and 'bsz' in kw
-    #     context, key_len, bsz = kw['context'], kw['key_len'], kw['bsz']
-    #
-    #     if context.size(0) != bsz:
-    #         assert context.size(1) == bsz
-    #         context = context.transpose(0, 1)
-    #
-    #     """ position based -- gamma"""
-    #     forward_x = self.forward_position_x
-    #     backward_x = self.backward_position_x
-    #     self_x = torch.zeros(1).type_as(backward_x)
-    #     position_x = torch.cat([forward_x, self_x, backward_x], 0)
-    #
-    #     max_x_len = position_x.size(-1)
-    #     half_max_x_len = (max_x_len + 1) // 2
-    #
-    #     indices = torch.arange(key_len).unsqueeze(0).repeat(key_len, 1). \
-    #         add(torch.arange(half_max_x_len - key_len, half_max_x_len).flip([0]).unsqueeze(1)). \
-    #         view(-1).long().cuda()
-    #     position_x = position_x.view(-1)[indices].view(key_len, key_len)
-    #
-    #     """ head based -- gamma"""
-    #     head_x = self.head_x
-    #
-    #     """position and head based -- gamma
-    #       gamma num_heads * key_len * key_len"""
-    #     x = position_x.unsqueeze(0).repeat(self.num_heads, 1, 1). \
-    #         add(head_x.unsqueeze(-1).unsqueeze(-1))
-    #
-    #     """ context weight based -- x"""
-    #     context_x = self.context_x_fc(context).unsqueeze(1)
-    #
-    #     log_weights = context_x.add(x.unsqueeze(0).repeat(bsz, 1, 1, 1)).sigmoid().clamp(1e-10).log()
-    #
-    #     if key_len == context.size(1):
-    #         return log_weights
-    #     else:
-    #         return log_weights[:, :, -1].unsqueeze(2)
-    #
-    # def reset_parameters(self):
-    #     if self.forward_position_x is not None:
-    #         nn.init.normal_(self.forward_position_x)
-    #     if self.backward_position_x is not None:
-    #         nn.init.normal_(self.backward_position_x)
-    #     if self.head_x is not None:
-    #         nn.init.normal_(self.head_x)
-    #     if self.context_x_fc is not None:
-    #         nn.init.xavier_uniform_(self.context_x_fc.weight)
 
     def __init__(
             self,
@@ -102,8 +84,6 @@ class RelativeMultiHeadAttention(nn.Module):
             num_heads: int = 16,
             dropout_p: float = 0.1,
             mask_selection: str = 'causalMask',
-            position_embedding_type: str = 'Transformer_FX',
-            dman_max_len: int = 400,
             use_DropKey: bool = False,
             mask_ratio: float = 0.3,
 
@@ -130,57 +110,80 @@ class RelativeMultiHeadAttention(nn.Module):
         self.mask_selection = mask_selection
         self.use_DropKey = use_DropKey
         self.mask_ratio = mask_ratio
-        # torch.set_printoptions(precision=None, threshold=5000, edgeitems=None, linewidth=300, profile=None,
-        #                        sci_mode=None)
+
+        # RoPE
+        self.freqs_cis = precompute_freqs_cis(
+            self.d_model // self.num_heads,
+            400,
+            1000,
+        )
 
     def forward(
             self,
             query: Tensor,
             key: Tensor,
             value: Tensor,
-            pos_embedding: Tensor,
+            # pos_embedding: Tensor,
             mask: Optional[Tensor] = None,
     ) -> Tensor:
         batch_size = value.size(0)
         query = self.query_proj(query).view(batch_size, -1, self.num_heads, self.d_head)
-        key = self.key_proj(key).view(batch_size, -1, self.num_heads, self.d_head).permute(0, 2, 1, 3)
-        value = self.value_proj(value).view(batch_size, -1, self.num_heads, self.d_head).permute(0, 2, 1, 3)
+        key = self.key_proj(key).view(batch_size, -1, self.num_heads, self.d_head)
+        value = self.value_proj(value).view(batch_size, -1, self.num_heads, self.d_head)
 
-        pos_embedding = self.pos_proj(pos_embedding).view(batch_size, -1, self.num_heads, self.d_head)
-
-        content_score = torch.matmul((query + self.u_bias).transpose(1, 2), key.transpose(2, 3))
-        # print(f'Using {self.mask_selection}!!! !!!')
-        pos_score = torch.matmul((query + self.v_bias).transpose(1, 2), pos_embedding.permute(0, 2, 3, 1))
-        pos_score = self._relative_shift(pos_score)
-
-        score = (content_score + pos_score) / self.sqrt_dim
-
-        if self.use_DropKey:
-            m_r = torch.ones_like(score) * self.mask_ratio
-            score = score + torch.bernoulli(m_r) * -1e12
+        query, key = apply_rotary_emb(query, key, freqs_cis=self.freqs_cis)
+        query = query.transpose(1, 2)  # (bs, n_local_heads, seqlen, head_dim)
+        keys = key.transpose(1, 2)  # (bs, n_local_heads, cache_len + seqlen, head_dim)
+        values = value.transpose(
+            1, 2
+        )  # (bs, n_local_heads, cache_len + seqlen, head_dim)
+        scores = torch.matmul(query, keys.transpose(2, 3)) / math.sqrt(self.d_head)
 
         if mask is not None:
             mask = mask.unsqueeze(1)
-            score.masked_fill_(mask, -1e9)
+            scores.masked_fill_(mask, -1e9)
+        scores = F.softmax(scores.float(), dim=-1).type_as(query)
+        scores = self.dropout(scores)
+
+        output = torch.matmul(scores, values)  # (bs, n_local_heads, seqlen, head_dim)
+        output = output.transpose(1, 2).contiguous().view(batch_size, 400, -1)
+        return self.out_proj(output)
+
+        # # pos_embedding = self.pos_proj(pos_embedding).view(batch_size, -1, self.num_heads, self.d_head)
+        #
+        # content_score = torch.matmul((query + self.u_bias).transpose(1, 2), key.transpose(2, 3))
+        # # print(f'Using {self.mask_selection}!!! !!!')
+        # pos_score = torch.matmul((query + self.v_bias).transpose(1, 2), pos_embedding.permute(0, 2, 3, 1))
+        # pos_score = self._relative_shift(pos_score)
+        #
+        # score = (content_score + pos_score) / self.sqrt_dim
+
+        # if self.use_DropKey:
+        #     m_r = torch.ones_like(score) * self.mask_ratio
+        #     score = score + torch.bernoulli(m_r) * -1e12
+        #
+        # if mask is not None:
+        #     mask = mask.unsqueeze(1)
+        #     score.masked_fill_(mask, -1e9)
         ## DropKey for Vision Transformer
 
-        attn = F.softmax(score, -1)
-        attn = self.dropout(attn)
+        # attn = F.softmax(score, -1)
+        # attn = self.dropout(attn)
 
-        context = torch.matmul(attn, value).transpose(1, 2)
-        context = context.contiguous().view(batch_size, -1, self.d_model)
+        # context = torch.matmul(attn, value).transpose(1, 2)
+        # context = context.contiguous().view(batch_size, -1, self.d_model)
+        #
+        # return self.out_proj(context)
 
-        return self.out_proj(context)
-
-    def _relative_shift(self, pos_score: Tensor) -> Tensor:
-        batch_size, num_heads, seq_length1, seq_length2 = pos_score.size()
-        zeros = pos_score.new_zeros(batch_size, num_heads, seq_length1, 1)
-        padded_pos_score = torch.cat([zeros, pos_score], dim=-1)
-
-        padded_pos_score = padded_pos_score.view(batch_size, num_heads, seq_length2 + 1, seq_length1)
-        pos_score = padded_pos_score[:, :, 1:].view_as(pos_score)
-
-        return pos_score
+    # def _relative_shift(self, pos_score: Tensor) -> Tensor:
+    #     batch_size, num_heads, seq_length1, seq_length2 = pos_score.size()
+    #     zeros = pos_score.new_zeros(batch_size, num_heads, seq_length1, 1)
+    #     padded_pos_score = torch.cat([zeros, pos_score], dim=-1)
+    #
+    #     padded_pos_score = padded_pos_score.view(batch_size, num_heads, seq_length2 + 1, seq_length1)
+    #     pos_score = padded_pos_score[:, :, 1:].view_as(pos_score)
+    #
+    #     return pos_score
 
 
 class MultiHeadedSelfAttentionModule(nn.Module):
@@ -205,12 +208,11 @@ class MultiHeadedSelfAttentionModule(nn.Module):
     """
 
     def __init__(self, d_model: int, num_heads: int, dropout_p: float = 0.1, mask_selection: str = 'causalMask',
-                 dman_max_len=200,
-                 position_embedding_type: str = 'Transformer_FX', causal_mask_diagonal: int = 0,
+                causal_mask_diagonal: int = 0,
                  upper_offset: int = 20, lower_offset: int = -20, atten_sel: str = 'conformer', use_DropKey=False,
                     mask_ratio=0.3,):
         super(MultiHeadedSelfAttentionModule, self).__init__()
-        self.pos_embedding = None
+        # self.pos_embedding = None
         self.positional_encoding = PositionalEncoding(d_model)
         self.layer_norm = nn.LayerNorm(d_model)
         self.atten_sel = atten_sel
@@ -218,14 +220,11 @@ class MultiHeadedSelfAttentionModule(nn.Module):
         if self.atten_sel == "conformer":
             self.attention = RelativeMultiHeadAttention(d_model, num_heads, dropout_p,
                                                         mask_selection=mask_selection,
-                                                        position_embedding_type=position_embedding_type,
-                                                        dman_max_len=dman_max_len,
                                                         use_DropKey=use_DropKey,
                                                         mask_ratio=mask_ratio,
                                                         )
         self.dropout = nn.Dropout(p=dropout_p)
         self.mask_selection = mask_selection
-        self.position_embedding = position_embedding_type
         self.mask = None
         self.causal_mask_diagonal = causal_mask_diagonal
         self.upper_offset = upper_offset
@@ -234,8 +233,8 @@ class MultiHeadedSelfAttentionModule(nn.Module):
     def forward(self, inputs: Tensor, mask: Optional[Tensor] = None):
         batch_size, seq_length, _ = inputs.size()
 
-        self.pos_embedding = self.positional_encoding(seq_length)
-        self.pos_embedding = self.pos_embedding.repeat(batch_size, 1, 1)
+        # self.pos_embedding = self.positional_encoding(seq_length)
+        # self.pos_embedding = self.pos_embedding.repeat(batch_size, 1, 1)
 
         if self.mask is None:
             if self.mask_selection == 'causalMask':
@@ -252,6 +251,6 @@ class MultiHeadedSelfAttentionModule(nn.Module):
 
         inputs = self.layer_norm(inputs)
 
-        outputs = self.attention(inputs, inputs, inputs, pos_embedding=self.pos_embedding, mask=self.mask)
-
+        # outputs = self.attention(inputs, inputs, inputs, pos_embedding=self.pos_embedding, mask=self.mask)
+        outputs = self.attention(inputs, inputs, inputs, mask=self.mask)
         return self.dropout(outputs)

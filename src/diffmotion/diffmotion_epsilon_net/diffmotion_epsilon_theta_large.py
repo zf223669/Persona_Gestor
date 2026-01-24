@@ -150,7 +150,6 @@ class TrinityEpsilonTheta(nn.Module):
                 self.style_encoder = nn.Sequential(
                     Transpose(shape=(1, 2)),
                     nn.Conv1d(in_channels=1024, out_channels=1024, kernel_size=500, stride=1, dilation=2),
-
                     Transpose(shape=(1, 2)),
                     nn.LayerNorm(1024),
                 )  # the numbers of parameters in Conv1D
@@ -234,9 +233,9 @@ class TrinityEpsilonTheta(nn.Module):
         t = self.diffusion_embedding(time.type(torch.long)).unsqueeze(1)
 
         x = self.motion_encoder(inputs)  # [64,58,512]
-        # if processing_state == 'training' or processing_state == 'validation' or (
-        #         processing_state == 'test' and (last_time_stamp in time)):
-        if self.wav_encode is None:
+        if processing_state == 'training' or processing_state == 'validation' or (
+                processing_state == 'test' and (last_time_stamp in time)):
+        # if  self.wav_encode is None:
             # log.info("wavLM_Encoding!!!!!!!!!!!!!!!!!!!!!!!!!!")
             self.wav_encode = self.WavLM_Encoder(cond=cond, style_encode=self.style_encode)
         c = t + self.wav_encode

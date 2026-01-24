@@ -54,7 +54,7 @@ class TrinityDiffmotionModule(LightningModule):
                  l_simple_weight=1.,
                  original_elbo_weight=0.,
                  scheduler_config=None,
-                 use_ema=True,
+                 use_ema=False,
                  init_by_mean_pose=False,
                  num_parallel_samples=1,
                  image_size=1,
@@ -85,7 +85,11 @@ class TrinityDiffmotionModule(LightningModule):
                  unipc_method='multistep',
                  unipc_lower_order_final=True,
                  unipc_denoise_to_zero=True,
-                 unipc_return_intermediate=False
+                 unipc_return_intermediate=False,
+                 unipc_algorithm_type = "noise_prediction",
+                 unipc_thresholding_max_val = 1.,
+                 unipc_dynamic_thresholding_ratio = 0.5,
+                 unipc_variant = 'bh1',
 
                  # endregion
                  ):
@@ -170,6 +174,10 @@ class TrinityDiffmotionModule(LightningModule):
         self.unipc_lower_order_final = unipc_lower_order_final
         self.unipc_denoise_to_zero = unipc_denoise_to_zero
         self.unipc_return_intermediate = unipc_return_intermediate
+        self.unipc_algorithm_type = unipc_algorithm_type
+        self.unipc_thresholding_max_val = unipc_thresholding_max_val
+        self.unipc_dynamic_thresholding_ratio = unipc_dynamic_thresholding_ratio
+        self.unipc_variant = unipc_variant
         # torch._dynamo.config.disable = True
         # print("")
 
@@ -462,13 +470,13 @@ class TrinityDiffmotionModule(LightningModule):
     @torch.no_grad()
     def validation_step(self, batch, batch_idx, *args: Any, **kwargs: Any):
         loss, loss_dict_no_ema = self.model_step(batch)
-        with self.ema_scope():
-            loss, loss_dict_ema = self.model_step(batch)
-            loss_dict_ema = {key + '_ema': loss_dict_ema[key] for key in loss_dict_ema}
+        # with self.ema_scope():
+        #     loss, loss_dict_ema = self.model_step(batch)
+        #     loss_dict_ema = {key + '_ema': loss_dict_ema[key] for key in loss_dict_ema}
         self.log_dict(loss_dict_no_ema, prog_bar=True, logger=True, on_step=False, on_epoch=True,
                       sync_dist=self.log_sync_dist)
-        self.log_dict(loss_dict_ema, prog_bar=True, logger=True, on_step=False, on_epoch=True,
-                      sync_dist=self.log_sync_dist)
+        # self.log_dict(loss_dict_ema, prog_bar=True, logger=True, on_step=False, on_epoch=True,
+        #               sync_dist=self.log_sync_dist)
 
     '''Test Step'''
 
@@ -509,37 +517,39 @@ class TrinityDiffmotionModule(LightningModule):
         for num in range(0, self.num_sequences):
             start_time = time.perf_counter()
             log.info(f'Generating {num} sequences: file name: {self.bvh_save_file}!!!')
-            with self.ema_scope("Plotting"):
-                if self.sampler == "DDPM":
-                    samples = self.sample(cond=control_all,
-                                          shape=future_samples.shape,
-                                          # batch_size=control_all.shape[0],
-                                          return_intermediates=False)
-                elif self.sampler == "unipc":
-                    from src.utils.uni_pc import NoiseScheduleVP,model_wrapper,UniPC
-                    noise_Schedule = NoiseScheduleVP(schedule='discrete',alphas_cumprod=self.alphas_cumprod)
-                    # model_kwards = {'cond':control_all}
-                    model_fn = model_wrapper(model=self.model, noise_schedule=noise_Schedule, condition=control_all,
-                                             model_type="noise",guidance_type='classifier-free')
-                    unipc = UniPC(model_fn=model_fn,noise_schedule=noise_Schedule,algorithm_type="noise_prediction",
-                                  thresholding_max_val=1.,dynamic_thresholding_ratio=0.5,variant='bh1')
-                    device = self.betas.device
-                    shape = future_samples.shape
-                    img = torch.randn(shape, device=device) # 【3,400,156】
-                    if self.unipc_return_intermediate:
-                        samples,intermediates = unipc.sample(x=img,steps=self.unipc_steps, t_start=self.unipc_t_start, t_end=self.unipc_t_end,
-                                               order=self.unipc_order, skip_type=self.unipc_skip_type,
-                                               method=self.unipc_method, lower_order_final=self.unipc_lower_order_final,
-                                               denoise_to_zero=self.unipc_denoise_to_zero,
-                                               return_intermediate=self.unipc_return_intermediate,)
-                    else:
-                        samples = unipc.sample(x=img, steps=self.unipc_steps, t_start=self.unipc_t_start,
-                                                              t_end=self.unipc_t_end,
-                                                              order=self.unipc_order, skip_type=self.unipc_skip_type,
-                                                              method=self.unipc_method,
-                                                              lower_order_final=self.unipc_lower_order_final,
-                                                              denoise_to_zero=self.unipc_denoise_to_zero,
-                                                              return_intermediate=self.unipc_return_intermediate, )
+            # with self.ema_scope("Plotting"):
+            if self.sampler == "DDPM":
+                samples = self.sample(cond=control_all,
+                                      shape=future_samples.shape,
+                                      # batch_size=control_all.shape[0],
+                                      return_intermediates=False)
+            elif self.sampler == "unipc":
+                from src.utils.uni_pc import NoiseScheduleVP,model_wrapper,UniPC
+                noise_Schedule = NoiseScheduleVP(schedule='discrete',alphas_cumprod=self.alphas_cumprod)
+                # model_kwards = {'cond':control_all}
+                model_fn = model_wrapper(model=self.model, noise_schedule=noise_Schedule, condition=control_all,
+                                         model_type="noise",guidance_type='classifier-free')
+                unipc = UniPC(model_fn=model_fn,noise_schedule=noise_Schedule,algorithm_type=self.unipc_algorithm_type,
+                              thresholding_max_val=self.unipc_thresholding_max_val,
+                              dynamic_thresholding_ratio=self.unipc_dynamic_thresholding_ratio,
+                              variant=self.unipc_variant)
+                device = self.betas.device
+                shape = future_samples.shape
+                img = torch.randn(shape, device=device) # 【3,400,156】
+                if self.unipc_return_intermediate:
+                    samples,intermediates = unipc.sample(x=img,steps=self.unipc_steps, t_start=self.unipc_t_start, t_end=self.unipc_t_end,
+                                           order=self.unipc_order, skip_type=self.unipc_skip_type,
+                                           method=self.unipc_method, lower_order_final=self.unipc_lower_order_final,
+                                           denoise_to_zero=self.unipc_denoise_to_zero,
+                                           return_intermediate=self.unipc_return_intermediate,)
+                else:
+                    samples = unipc.sample(x=img, steps=self.unipc_steps, t_start=self.unipc_t_start,
+                                                          t_end=self.unipc_t_end,
+                                                          order=self.unipc_order, skip_type=self.unipc_skip_type,
+                                                          method=self.unipc_method,
+                                                          lower_order_final=self.unipc_lower_order_final,
+                                                          denoise_to_zero=self.unipc_denoise_to_zero,
+                                                          return_intermediate=self.unipc_return_intermediate, )
 
             end_time = time.perf_counter()
             execution_time = end_time - start_time

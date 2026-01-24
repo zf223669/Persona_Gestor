@@ -107,6 +107,10 @@ unipc_method: 'multistep'
 unipc_lower_order_final: True
 unipc_denoise_to_zero: True
 unipc_return_intermediate: False
+unipc_algorithm_type: "noise_prediction"
+unipc_thresholding_max_val: 1.
+unipc_dynamic_thresholding_ratio: 0.95
+unipc_variant: 'bh1'
 num_sequences: 1
 
 

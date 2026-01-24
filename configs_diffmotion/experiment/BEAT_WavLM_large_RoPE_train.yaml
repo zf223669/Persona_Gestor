@@ -6,7 +6,7 @@
 defaults:
   - override /data: diffmotion_multi_test_datamodule.yaml
   - override /model: diffmotion_multi_test_module.yaml
-  - override /logger: null # wandb.yaml
+  - override /logger: wandb.yaml
   - override /callbacks: callbacks_trinity_diffusion.yaml
 #  - override /trainer: ddp.yaml
   - override /trainer: Trinity_gpu.yaml
@@ -14,16 +14,16 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_clean_up"
+task_name: "BEAT_W_L_RoPE"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
-tags: ["BEAT_W_L_generate"]
+tags: ["BEAT_W_L_RoPE"]
 
-ckpt_path: /home/zf/Persona_Gestor/ckpt_path/BEAT_WavLM_large_079.ckpt
+ckpt_path:
 #ckpt_path: null
 seed: null
-train: False
+train: True
 test: True
 compile: False
 
@@ -33,8 +33,8 @@ logger:
     id:  ${task_name} # pass correct id to resume experiment! ${task_name}
 #    tags: ${tags}
     name: ${task_name}
-    project: "BEAT"
-    group: "BEAT_W_L_generate"
+    project: "BEAT_W_L_RoPE"
+    group: "BEAT_W_L_RoPE"
 
 trainer:
   min_epochs: 10
@@ -44,19 +44,20 @@ trainer:
   gradient_clip_val: 0.5
   check_val_every_n_epoch: 5
   log_every_n_steps: 20
-#  accumulate_grad_batches: 8
+  accumulate_grad_batches: 8
   fast_dev_run: False
 #  profiler: "simple"  # "advanced" "simple"
   #precision: 16-mixed  # worst
 
 profiler:
-#  _target_: pytorch_lightning.profilers.SimpleProfiler
-#  extended: True
+  _target_: pytorch_lightning.profilers.SimpleProfiler
+  extended: True
+  #dirpath: ${paths.output_dir}/
+  #filename: 'profiler'
+#  _target_: pytorch_lightning.profilers.AdvancedProfiler
 #  dirpath: ${paths.output_dir}/
 #  filename: 'profiler'
-  _target_: pytorch_lightning.profilers.AdvancedProfiler
-  dirpath: ${paths.output_dir}/
-  filename: 'profiler'
+
 #  _target_: pytorch_lightning.profilers.PyTorchProfiler
 #  #on_trace_ready: torch.profiler.tensorboard_trace_handler("./log")
 #  record_shapes: True
@@ -74,7 +75,7 @@ model:
   linear_end: 8e-2    # 5e-2
   parameterization: "eps"
   gesture_features: 156 # 69 65
-  encoder_dim: 1280   # 1024
+  encoder_dim: 1024   # 1024
   learning_rate: 2.0e-4
   sampler: "unipc" #''DDPM'/'unipc'
   unipc_steps: 32   # 32 best but the hip position accumulate error
@@ -107,7 +108,7 @@ model:
       # checkpoint_path: ${paths.root_dir}/src/utils/wavlm/pretrain-models/WavLM-Base+.pt
       checkpoint_path: ${paths.root_dir}/src/utils/wavlm/pretrain-models/WavLM-Large.pt
     cond_dropout_rate: 0.1
-    conv_depthwise: False
+    conv_depthwise: True
     use_DropKey: False
   scheduler_config: # 10000 warmup steps
     target: src.utils.LDM.lr_scheduler.LambdaLinearScheduler
@@ -122,8 +123,8 @@ paths:
   log_dir: ${paths.root_dir}/logs_pr/
 data:
   data_root: ${paths.data_dir}/feat_20fps_20s_WithExp_waveform_WithStd
-  pin_memory: True
-  batch_size: 23    # 58: 6s   28: 10s 16:15S  8:20s
+  pin_memory: False
+  batch_size: 10    # 58: 6s   28: 10s 16:15S  8:20s
   num_workers: 23
   is_smoothing: False
   test_style: ['13_lu_0_9_9']
