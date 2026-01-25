@@ -6,7 +6,7 @@
 defaults:
   - override /data: diffmotion_multi_test_datamodule.yaml
   - override /model: diffmotion_multi_test_module.yaml
-  - override /logger: wandb.yaml
+  - override /logger: null # wandb.yaml
   - override /callbacks: callbacks_trinity_diffusion.yaml
 #  - override /trainer: ddp.yaml
   - override /trainer: Trinity_gpu.yaml
@@ -20,9 +20,9 @@ use_auto_scale_batch_size: False
 #reload_dataloaders_every_epoch: False
 tags: ["BEAT_W_L_opt_atten_train"]
 
-ckpt_path: null
+ckpt_path: /home/zf/Persona_Gestor/logs/log_BEAT/BEAT_W_L_opt_atten_train/multi/260125_003706/0_260125_003706/checkpoints/epoch_epoch=014.ckpt
 seed: null
-train: True
+train: False
 test: True
 
 logger:
@@ -64,7 +64,7 @@ model:
   gesture_features: 156 # 69 65
   encoder_dim: 1024   # 1024
   learning_rate: 2.0e-4
-  sampler: "DDPM" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
+  sampler: "unipc" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
   ddim_steps: 200 # 10 ~ 100 for timesteps=500
   num_sequences: 1  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
 
@@ -97,13 +97,13 @@ model:
       f_min: [ 1. ]
 paths:
   data_dir: ${paths.root_dir}/data/BEAT/processed_20s_cnst
-  log_dir: ${paths.root_dir}/logs/log_BEAT
+  log_dir: ${paths.root_dir}/logs/
 data:
   data_root: ${paths.data_dir}/feat_20fps_20s_WithExp_waveform_WithStd
-  pin_memory: False
-  batch_size: 8    # 58: 6s   28: 10s 16:15S  8:20s
-  num_workers: 8
+  pin_memory: True
+  batch_size: 23    # 58: 6s   28: 10s 16:15S  8:20s
+  num_workers: 23
   is_smoothing: False
-  test_style: [13_lu_0_9_9']  #'test_file_Recording_008_'
+  test_style: ['13_lu_0_9_9']
 
 

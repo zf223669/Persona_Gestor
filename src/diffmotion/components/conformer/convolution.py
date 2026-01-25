@@ -47,6 +47,7 @@ class DepthwiseConv1d(nn.Module):
             kernel_size: int,
             stride: int = 1,
             padding: int = 0,
+            dilation: int = 1,
             bias: bool = False,
     ) -> None:
         super(DepthwiseConv1d, self).__init__()
@@ -56,6 +57,7 @@ class DepthwiseConv1d(nn.Module):
             out_channels=out_channels,
             kernel_size=kernel_size,
             groups=in_channels,
+            dilation=dilation,
             stride=stride,
             padding=padding,
             bias=bias,
