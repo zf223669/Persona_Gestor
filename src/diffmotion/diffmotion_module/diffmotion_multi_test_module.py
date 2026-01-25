@@ -22,6 +22,7 @@ from src import utils
 from tqdm import tqdm
 import os
 import time
+import bitsandbytes as bnb
 from lightning.pytorch.profilers import SimpleProfiler, PassThroughProfiler
 import gc
 
@@ -90,7 +91,6 @@ class TrinityDiffmotionModule(LightningModule):
                  # endregion
                  ):
         super().__init__()
-
         self.save_hyperparameters(logger=False, ignore=['eps_theta_mod'])
         # self.save_hyperparameters(logger=False)
         # also ensures init params will be stored in ckpt
@@ -583,6 +583,7 @@ class TrinityDiffmotionModule(LightningModule):
         if self.learn_logvar:
             print('Diffusion model optimizing logvar')
             params.append(self.logvar)
+        #opt = bnb.optim.Adam8bit(params, lr=lr)
         opt = torch.optim.AdamW(params, lr=lr)
         if self.use_scheduler:
             assert 'target' in self.scheduler_config

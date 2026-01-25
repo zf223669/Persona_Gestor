@@ -22,6 +22,7 @@ from typing import Optional
 from .embedding import PositionalEncoding
 from .modules import Linear
 import src.diffmotion.components.mask.mask as mask_strategy
+from src.utils.heatmap_figure import interactive_attention_heatmap, visualize_and_save_attention
 from torch.nn.parameter import Parameter
 
 
@@ -161,10 +162,13 @@ class RelativeMultiHeadAttention(nn.Module):
 
         if mask is not None:
             mask = mask.unsqueeze(1)
-            score.masked_fill_(mask, -1e9)
+            # score.masked_fill_(mask, -1e9)
+            score.masked_fill_(mask, -torch.inf)
         ## DropKey for Vision Transformer
 
         attn = F.softmax(score, -1)
+        # interactive_attention_heatmap(attn)
+        # visualize_and_save_attention(attn)
         attn = self.dropout(attn)
 
         context = torch.matmul(attn, value).transpose(1, 2)
@@ -172,15 +176,31 @@ class RelativeMultiHeadAttention(nn.Module):
 
         return self.out_proj(context)
 
-    def _relative_shift(self, pos_score: Tensor) -> Tensor:
+    # def _relative_shift(self, pos_score: Tensor) -> Tensor:
+    #     batch_size, num_heads, seq_length1, seq_length2 = pos_score.size()
+    #     zeros = pos_score.new_zeros(batch_size, num_heads, seq_length1, 1)
+    #     padded_pos_score = torch.cat([zeros, pos_score], dim=-1)
+    #
+    #     padded_pos_score = padded_pos_score.view(batch_size, num_heads, seq_length2 + 1, seq_length1)
+    #     pos_score = padded_pos_score[:, :, 1:].view_as(pos_score)
+    #
+    #     return pos_score
+
+    def _relative_shift(self, pos_score: torch.Tensor) -> torch.Tensor:
+        """
+        Optimized relative shift implementation using padding.
+        Input: (B, H, L, L)
+        Output: (B, H, L, L)
+        """
         batch_size, num_heads, seq_length1, seq_length2 = pos_score.size()
-        zeros = pos_score.new_zeros(batch_size, num_heads, seq_length1, 1)
-        padded_pos_score = torch.cat([zeros, pos_score], dim=-1)
 
-        padded_pos_score = padded_pos_score.view(batch_size, num_heads, seq_length2 + 1, seq_length1)
-        pos_score = padded_pos_score[:, :, 1:].view_as(pos_score)
+        # Pad one column of zeros to the right: (B, H, L, L+1)
+        # This is more memory efficient than creating a new tensor
+        padded = F.pad(pos_score, (1, 0))
 
-        return pos_score
+        # Reshape to (B, H, L+1, L) and slice
+        padded = padded.view(batch_size, num_heads, seq_length2 + 1, seq_length1)
+        return padded[:, :, 1:].view_as(pos_score)
 
 
 class MultiHeadedSelfAttentionModule(nn.Module):
@@ -251,7 +271,6 @@ class MultiHeadedSelfAttentionModule(nn.Module):
                 self.mask = self.mask[0].unsqueeze(0).repeat(batch_size, 1, 1)
 
         inputs = self.layer_norm(inputs)
-
         outputs = self.attention(inputs, inputs, inputs, pos_embedding=self.pos_embedding, mask=self.mask)
 
         return self.dropout(outputs)
