@@ -4,9 +4,9 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: diffmotion_datamodule.yaml
-  - override /model: diffmotion_module.yaml
-  - override /logger: null # wandb.yaml
+  - override /data: diffmotion_multi_test_datamodule.yaml
+  - override /model: diffmotion_multi_test_module.yaml
+  - override /logger: wandb.yaml
   - override /callbacks: callbacks_trinity_diffusion.yaml
 #  - override /trainer: ddp.yaml
   - override /trainer: Trinity_gpu.yaml
@@ -14,11 +14,11 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "BEAT_W_L_train"
+task_name: "precision_train"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
-tags: ["BEAT_W_L_train"]
+tags: ["precision_train"]
 
 ckpt_path: null
 seed: null
@@ -32,8 +32,8 @@ logger:
     id:  ${task_name} # pass correct id to resume experiment! ${task_name}
 #    tags: ${tags}
     name: ${task_name}
-    project: "BEAT"
-    group: "BEAT_W_L_train"
+    project: "BEAT_Optimize"
+    group: "precision_train"
 
 trainer:
   min_epochs: 10
@@ -43,10 +43,10 @@ trainer:
   gradient_clip_val: 0.5
   check_val_every_n_epoch: 5
   log_every_n_steps: 20
-#  accumulate_grad_batches: 8
+  accumulate_grad_batches: 20
   fast_dev_run: False
 #  profiler: "simple"  # "advanced" "simple"
-#  precision: 16  # worst
+  precision: bf16-true  # worst
 
 profiler:
   _target_: pytorch_lightning.profilers.SimpleProfiler
@@ -73,11 +73,6 @@ model:
     atten_sel: 'conformer'          # conformer 'informer', 'full_transformer'
 
     mask_sel: 'causalMask'          # ‘diagonal_matrix’, 'no_mask', 'causalMask','dman'
-    dman_mask: 'no_mask'
-    dman_max_len: 400               # max_seq_len 120, 100 200 300 400
-    dman_position: False
-    inf_pos: False
-    informer_factor: 5
     upper_offset: 10
     lower_offset: -10
 #    re_weight_m: 1
@@ -106,9 +101,9 @@ paths:
 data:
   data_root: ${paths.data_dir}/feat_20fps_20s_WithExp_waveform_WithStd
   pin_memory: False
-  batch_size: 7    # 58: 6s   28: 10s 16:15S  8:20s
-  num_workers: 8
+  batch_size: 12    # 58: 6s   28: 10s 16:15S  8:20s
+  num_workers: 23
   is_smoothing: False
-  test_style: '13_lu_0_9_9' #'test_file_Recording_008_'
+  test_style: [13_lu_0_9_9] #'test_file_Recording_008_'
 
 
