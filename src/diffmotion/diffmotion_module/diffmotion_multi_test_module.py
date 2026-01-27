@@ -586,7 +586,7 @@ class TrinityDiffmotionModule(LightningModule):
             print('Diffusion model optimizing logvar')
             params.append(self.logvar)
         # opt = torch.optim.AdamW(params, lr=lr)
-        opt = bnb.optim.Adam8bit(self.parameters(), lr=1e-3)
+        opt = bnb.optim.Adam8bit(self.parameters(), lr=lr)
         if self.use_scheduler:
             assert 'target' in self.scheduler_config
             scheduler = instantiate_from_config(self.scheduler_config)
