@@ -231,6 +231,7 @@ class TrinityDiffmotionModule(LightningModule):
 
         assert not torch.isnan(self.lvlb_weights).all()
 
+
     def repeat_tensor(self, tensor, dim=0):
         return tensor.repeat_interleave(repeats=self.num_parallel_samples, dim=dim)
 
@@ -519,15 +520,19 @@ class TrinityDiffmotionModule(LightningModule):
                                       return_intermediates=False)
             elif self.sampler == "unipc":
                 from src.utils.uni_pc import NoiseScheduleVP,model_wrapper,UniPC
+                device = self.betas.device
+                shape = future_samples.shape
+                img = torch.randn(shape, device=device)  # 【3,400,156】
+
                 noise_Schedule = NoiseScheduleVP(schedule='discrete',alphas_cumprod=self.alphas_cumprod)
+                # noise_Schedule = NoiseScheduleVP(schedule='discrete', betas=torch.from_numpy(make_beta_schedule('linear', 1000, linear_start=1e-4, linear_end=8e-2)))
                 # model_kwards = {'cond':control_all}
                 model_fn = model_wrapper(model=self.model, noise_schedule=noise_Schedule, condition=control_all,
                                          model_type="noise",guidance_type='classifier-free')
                 unipc = UniPC(model_fn=model_fn,noise_schedule=noise_Schedule,algorithm_type="noise_prediction",
-                              thresholding_max_val=1.,dynamic_thresholding_ratio=0.5,variant='bh1')
-                device = self.betas.device
-                shape = future_samples.shape
-                img = torch.randn(shape, device=device) # 【3,400,156】
+                              thresholding_max_val=1.,dynamic_thresholding_ratio=0.995,variant='bh1')
+
+
                 if self.unipc_return_intermediate:
                     samples,intermediates = unipc.sample(x=img,steps=self.unipc_steps, t_start=self.unipc_t_start, t_end=self.unipc_t_end,
                                            order=self.unipc_order, skip_type=self.unipc_skip_type,
@@ -547,6 +552,7 @@ class TrinityDiffmotionModule(LightningModule):
             execution_time = end_time - start_time
             self.log(f'Seq_{num}_Generate_time', execution_time)
             future_samples = samples.cpu().numpy().copy()
+            # print(future_samples)
             bvh_save_name = os.path.join(self.bvh_save_path, self.bvh_save_file)
             extract_parameters = utils.extract_characters(self.bvh_save_path)
             for parameter in extract_parameters:

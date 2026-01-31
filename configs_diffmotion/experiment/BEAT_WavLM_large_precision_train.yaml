@@ -14,13 +14,13 @@ defaults:
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
-task_name: "precision_train"
+task_name: "precision_bf32-mixed_train"
 use_auto_scale_batch_size: False
 #num_sanity_val_steps: 0
 #reload_dataloaders_every_epoch: False
-tags: ["precision_train"]
+tags: ["precision_bf32-mixed_train"]
 
-ckpt_path: null
+ckpt_path:
 seed: null
 train: True
 test: True
@@ -43,11 +43,11 @@ trainer:
   gradient_clip_val: 0.5
   check_val_every_n_epoch: 5
   log_every_n_steps: 20
-  accumulate_grad_batches: 20
+  accumulate_grad_batches: 64
   fast_dev_run: False
 #  profiler: "simple"  # "advanced" "simple"
-  precision: bf16-true  # worst
-
+  # precision: bf16-true  # worst
+  precision: bf16-mixed
 profiler:
   _target_: pytorch_lightning.profilers.SimpleProfiler
   extended: True
@@ -62,7 +62,7 @@ model:
   linear_end: 8e-2    # 5e-2
 
   gesture_features: 156 # 69 65
-  encoder_dim: 1280   # 1024
+  encoder_dim: 1152   # 1024，1280
   learning_rate: 2.0e-4
   sampler: "DDPM" #'DDIM'/'DDPM',/'dpmsolver++'/'dpmsolver'
   ddim_steps: 200 # 10 ~ 100 for timesteps=500
@@ -101,7 +101,7 @@ paths:
 data:
   data_root: ${paths.data_dir}/feat_20fps_20s_WithExp_waveform_WithStd
   pin_memory: False
-  batch_size: 12    # 58: 6s   28: 10s 16:15S  8:20s
+  batch_size: 4    # 58: 6s   28: 10s 16:15S  8:20s  # 12 for bf16-true precision
   num_workers: 23
   is_smoothing: False
   test_style: [13_lu_0_9_9] #'test_file_Recording_008_'
