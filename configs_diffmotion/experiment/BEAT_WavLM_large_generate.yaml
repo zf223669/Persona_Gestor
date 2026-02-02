@@ -86,7 +86,7 @@ model:
   unipc_lower_order_final: True
   unipc_denoise_to_zero: True
   unipc_return_intermediate: False
-  num_sequences: 1  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
+  num_sequences: 5  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
   eps_theta_mod:
     _target_: src.diffmotion.diffmotion_epsilon_net.diffmotion_epsilon_theta_large.TrinityEpsilonTheta
     atten_sel: 'conformer'          # conformer 'informer', 'full_transformer'

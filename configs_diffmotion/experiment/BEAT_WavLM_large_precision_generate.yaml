@@ -20,8 +20,8 @@ use_auto_scale_batch_size: False
 #reload_dataloaders_every_epoch: False
 tags: ["precision_bf32-mixed_train"]
 
-#ckpt_path: /home/zf/Persona_Gestor/ckpt_path/precision_bf16_mixed_099.ckpt
-ckpt_path: /home/zf/Persona_Gestor/ckpt_path/BEAT_WavLM_large_079.ckpt
+ckpt_path: /home/zf/Persona_Gestor/ckpt_path/precision_bf16_mixed_099.ckpt # 0.86s
+# ckpt_path: /home/zf/Persona_Gestor/ckpt_path/BEAT_WavLM_large_079.ckpt
 seed: null
 train: False
 test: True
@@ -48,7 +48,7 @@ trainer:
   fast_dev_run: False
 #  profiler: "simple"  # "advanced" "simple"
   # precision: bf16-true  # worst
-  # precision: bf16-mixed # good 速度慢了。
+  # precision: bf16-mixed # good
   precision: 32
 profiler:
 #  _target_: pytorch_lightning.profilers.SimpleProfiler
@@ -68,7 +68,7 @@ model:
   linear_end: 8e-2    # 5e-2
 
   gesture_features: 156 # 69 65
-  encoder_dim: 1280   # 1024，1280，1152
+  encoder_dim: 1152   # 1024，1280，1152
   learning_rate: 2.0e-4
   sampler: "unipc" #''DDPM'/'unipc'
   unipc_steps: 32   # 32 best but the hip position accumulate error
@@ -80,7 +80,7 @@ model:
   unipc_lower_order_final: True
   unipc_denoise_to_zero: True
   unipc_return_intermediate: False
-  num_sequences: 1  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
+  num_sequences: 5  # each audio sequence has 1 gesture sequence, you can set it to more than 1 for multi-gesture sequence each audio sequence
 
   eps_theta_mod:
     _target_: src.diffmotion.diffmotion_epsilon_net.diffmotion_epsilon_theta_large.TrinityEpsilonTheta
